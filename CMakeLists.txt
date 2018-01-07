@@ -51,8 +51,21 @@ endif()
 # Core Library
 ################################################################################
 set(SLATE_SRC
+  slate/application.c
+  slate/application.h
+  slate/array.c
+  slate/array.h
+  slate/fwdslate.h
+  slate/label.c
+  slate/label.h
+  slate/math.h
+  slate/menu_bar.h
   slate/slate.c
   slate/slate.h
+  slate/status_bar.c
+  slate/status_bar.h
+  slate/widget.c
+  slate/widget.h
 )
 
 add_library(slate ${SLATE_SRC})

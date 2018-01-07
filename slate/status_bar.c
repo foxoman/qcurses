@@ -16,43 +16,44 @@
  * Slate Terminal UI Source
  ******************************************************************************/
 
-#include "slate.h"
-#include <errno.h>
-#include <unistd.h>
-#include <string.h>
-#include <ncurses.h>
+#include "status_bar.h"
 
 #ifdef    __cplusplus
 extern "C" {
 #endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
-// Slate Generic Functions
+// Slate Public Functions
 ////////////////////////////////////////////////////////////////////////////////
-// TODO: For now, have an allocator abstraction layer, but don't implement the allocators.
-//       Gotta figure out how to better utilize a pass-through for LT3 first.
 
-void * slate_allocate (
-  slate_alloc_t const *                 pAllocator,
-  size_t                                n,
-  size_t                                align
+//------------------------------------------------------------------------------
+static int slate_status_bar_recalculate (
+  slate_status_bar_t *                  pStatusBar,
+  slate_bounds_t const *                pBounds
 ) {
-  return aligned_alloc(align, n);
+  (void)pStatusBar;
+  (void)pBounds;
+  return ENOTSUP;
 }
 
-void * slate_reallocate (
-  slate_alloc_t const *                 pAllocator,
-  void *                                ptr,
-  size_t                                n
+//------------------------------------------------------------------------------
+static int slate_status_bar_paint (
+  slate_status_bar_t *                  pStatusBar,
+  slate_region_t const *                pRegion
 ) {
-  return realloc(ptr, n);
+  (void)pStatusBar;
+  (void)pRegion;
+  return ENOTSUP;
 }
 
-void slate_free (
+//------------------------------------------------------------------------------
+int slate_create_status_bar (
   slate_alloc_t const *                 pAllocator,
-  void *                                ptr
+  slate_status_bar_t **                 pStatusBar
 ) {
-  free(ptr);
+  (void)pAllocator;
+  (void)pStatusBar;
+  return ENOTSUP;
 }
 
 #ifdef    __cplusplus

@@ -13,48 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *------------------------------------------------------------------------------
- * Slate Terminal UI Source
+ * Slate Terminal UI Include Header
  ******************************************************************************/
+#ifndef   SLATE_MENU_BAR_H
+#define   SLATE_MENU_BAR_H
 
 #include "slate.h"
-#include <errno.h>
-#include <unistd.h>
-#include <string.h>
-#include <ncurses.h>
+#include "widget.h"
 
 #ifdef    __cplusplus
 extern "C" {
 #endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
-// Slate Generic Functions
+// Definition
 ////////////////////////////////////////////////////////////////////////////////
-// TODO: For now, have an allocator abstraction layer, but don't implement the allocators.
-//       Gotta figure out how to better utilize a pass-through for LT3 first.
 
-void * slate_allocate (
-  slate_alloc_t const *                 pAllocator,
-  size_t                                n,
-  size_t                                align
-) {
-  return aligned_alloc(align, n);
-}
-
-void * slate_reallocate (
-  slate_alloc_t const *                 pAllocator,
-  void *                                ptr,
-  size_t                                n
-) {
-  return realloc(ptr, n);
-}
-
-void slate_free (
-  slate_alloc_t const *                 pAllocator,
-  void *                                ptr
-) {
-  free(ptr);
-}
+//------------------------------------------------------------------------------
+SLATE_WIDGET_BEGIN(slate_menu_bar_t, slate_widget_parent_t)
+  // Intentionally Empty
+SLATE_WIDGET_END
 
 #ifdef    __cplusplus
 }
 #endif // __cplusplus
+
+#endif // SLATE_MENU_BAR_H

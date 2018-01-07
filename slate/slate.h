@@ -15,11 +15,11 @@
  *------------------------------------------------------------------------------
  * Slate Terminal UI Include Header
  ******************************************************************************/
-#ifndef   SLATE_H
-#define   SLATE_H
+#ifndef   SLATE_SLATE_H
+#define   SLATE_SLATE_H
 
-#include <stdlib.h>
-#include <stdint.h>
+#include "fwdslate.h"
+#include <errno.h>
 
 #ifdef    __cplusplus
 extern "C" {
@@ -29,51 +29,31 @@ extern "C" {
 // Slate Defines
 ////////////////////////////////////////////////////////////////////////////////
 
-#define SLATE_HANDLE(name) typedef struct name name
-
-#define SLATE_TERMINATE -1
-
 #define SLATECALL
 #define SLATEPTR
-
-typedef uint32_t slate_flags_t;
-typedef uint64_t slate_token_t;
-
-#define SLATE_INVALID_ENUM_STRING "<invalid>"
-
 #define SLATE_FALSE 0
-#define SLATE_TRUE 1
-
-#define SLATE_TOKENIZE(a,b,c,d,e,f,g,h)                                         \
-(((slate_token_t)(a) << 56) | ((slate_token_t)(b) << 48) |                      \
- ((slate_token_t)(c) << 40) | ((slate_token_t)(d) << 32) |                      \
- ((slate_token_t)(e) << 24) | ((slate_token_t)(f) << 16) |                      \
- ((slate_token_t)(g) << 8 ) | ((slate_token_t)(h) << 0 ))
-
-typedef uint_fast8_t slate_bool_t;
+#define SLATE_TRUE  1
+#define SLATE_BOOL(stmt) ((stmt) ? SLATE_TRUE : SLATE_FALSE)
+#define SLATE_INFINITE            SIZE_MAX
+#define SLATE_SIGNAL_MAX          UINT32_MAX
+#define SLATE_PIMPL_NAME(name)    _##name##_impl_t
+#define SLATE_SLOT_NAME(name)     _##name##_slot_t
+#define SLATE_PIMPL_STRUCT(name)  struct SLATE_PIMPL_NAME(name)
+#define SLATE_MIN(a,b)            (((a) < (b)) ? (a) : (b))
+#define SLATE_MAX(a,b)            (((a) > (b)) ? (a) : (b))
 
 ////////////////////////////////////////////////////////////////////////////////
 // Slate Enumerations
 ////////////////////////////////////////////////////////////////////////////////
 
-typedef enum slate_message_type_t {
-  SLATE_MESSAGE_TYPE_KEYBOARD = 0,
-  SLATE_MESSAGE_TYPE_REDRAW = 1,
-  SLATE_MESSAGE_TYPE_RESIZE = 2,
-  SLATE_MESSAGE_TYPE_BEGIN_RANGE = SLATE_MESSAGE_TYPE_KEYBOARD,
-  SLATE_MESSAGE_TYPE_END_RANGE = SLATE_MESSAGE_TYPE_RESIZE,
-  SLATE_MESSAGE_TYPE_RANGE_SIZE = (SLATE_MESSAGE_TYPE_END_RANGE - SLATE_MESSAGE_TYPE_BEGIN_RANGE + 1),
-  SLATE_MESSAGE_TYPE_MAX_ENUM = 0x7FFF
-} slate_message_type_t;
-
-typedef enum slate_keycode_t {
+//------------------------------------------------------------------------------
+enum slate_keycode_t {
   SLATE_KEYCODE_INVALID = 0x00,
   SLATE_KEYCODE_TAB = 0x09,
   SLATE_KEYCODE_RETURN = 0x0D,
   SLATE_KEYCODE_ESCAPE = 0x1B,
   SLATE_KEYCODE_SPACE = 0x20,
   SLATE_KEYCODE_SINGLE_QUOTE = 0x27,
-  SLATE_KEYCODE_PLUS = 0x2B,
   SLATE_KEYCODE_COMMA = 0x2C,
   SLATE_KEYCODE_MINUS = 0x2D,
   SLATE_KEYCODE_PERIOD = 0x2E,
@@ -135,6 +115,21 @@ typedef enum slate_keycode_t {
   SLATE_KEYCODE_END,
   SLATE_KEYCODE_HOME,
 
+  // Function keys
+  SLATE_KEYCODE_F0,
+  SLATE_KEYCODE_F1,
+  SLATE_KEYCODE_F2,
+  SLATE_KEYCODE_F3,
+  SLATE_KEYCODE_F4,
+  SLATE_KEYCODE_F5,
+  SLATE_KEYCODE_F6,
+  SLATE_KEYCODE_F7,
+  SLATE_KEYCODE_F8,
+  SLATE_KEYCODE_F9,
+  SLATE_KEYCODE_F10,
+  SLATE_KEYCODE_F11,
+  SLATE_KEYCODE_F12,
+
   // TODO: Add support.
   SLATE_KEYCODE_NUM_0,
   SLATE_KEYCODE_NUM_1,
@@ -146,23 +141,39 @@ typedef enum slate_keycode_t {
   SLATE_KEYCODE_NUM_7,
   SLATE_KEYCODE_NUM_8,
   SLATE_KEYCODE_NUM_9,
-} slate_keycode_t;
+};
 
-typedef enum slate_modifier_bits_t {
+//------------------------------------------------------------------------------
+enum slate_state_bits_t {
+  SLATE_STATE_DIRTY_BIT = 0x01,
+  SLATE_STATE_PARENT_BIT = 0x02,
+  SLATE_STATE_VISIBLE_BIT = 0x04,
+};
+
+//------------------------------------------------------------------------------
+enum slate_modifier_bits_t {
   SLATE_MODIFIER_SHIFT_BIT = 0x01,
   SLATE_MODIFIER_CONTROL_BIT = 0x02,
-} slate_modifier_bits_t;
-typedef slate_flags_t slate_modifier_t;
+};
 #define SLATE_MODIFIER_NONE 0
 
-typedef enum slate_widget_type_t {
-  SLATE_WIDGET_TYPE_APPLICATION = 0,
-  SLATE_WIDGET_TYPE_STATUS_BAR = 1,
-  SLATE_WIDGET_TYPE_MENU = 2,
-  SLATE_WIDGET_TYPE_LABEL = 3,
-} slate_widget_type_t;
+//------------------------------------------------------------------------------
+enum slate_policy_bits_t {
+  SLATE_POLICY_GROW_BIT = 0x01,
+  SLATE_POLICY_SHRINK_BIT = 0x02,
+  SLATE_POLICY_EXPAND_BIT = 0x04,
+  SLATE_POLICY_IGNORE_BIT = 0x08
+};
+#define SLATE_POLICY_FIXED      (0)
+#define SLATE_POLICY_MINIMUM    (SLATE_POLICY_GROW_BIT)
+#define SLATE_POLICY_MAXIMUM    (SLATE_POLICY_SHRINK_BIT)
+#define SLATE_POLICY_PREFERRED  (SLATE_POLICY_GROW_BIT | SLATE_POLICY_SHRINK_BIT)
+#define SLATE_POLICY_EXPANDING  (SLATE_POLICY_GROW_BIT | SLATE_POLICY_SHRINK_BIT | SLATE_POLICY_EXPAND_BIT)
+#define SLATE_POLICY_FLEXIBLE   (SLATE_POLICY_GROW_BIT | SLATE_POLICY_EXPAND_BIT)
+#define SLATE_POLICY_IGNORED    (SLATE_POLICY_GROW_BIT | SLATE_POLICY_SHRINK_BIT | SLATE_POLICY_IGNORE_BIT)
 
-typedef enum slate_align_bits_t {
+//------------------------------------------------------------------------------
+enum slate_align_bits_t {
   // Mutually-exclusive horizontal bits:
   SLATE_ALIGN_LEFT_BIT = 0x0001,
   SLATE_ALIGN_CENTER_BIT = 0x0002,
@@ -171,258 +182,57 @@ typedef enum slate_align_bits_t {
   SLATE_ALIGN_TOP_BIT = 0x0010,
   SLATE_ALIGN_MIDDLE_BIT = 0x0020,
   SLATE_ALIGN_BOTTOM_BIT = 0x0030,
-} slate_align_bits_t;
-typedef slate_flags_t slate_align_t;
-
+};
 #define SLATE_ALIGN_HORIZONTAL_MASK 0x000F
 #define SLATE_ALIGN_VERTICAL_MASK   0x00F0
 
-////////////////////////////////////////////////////////////////////////////////
-// Slate Messages
-////////////////////////////////////////////////////////////////////////////////
-
-typedef struct slate_message_base_t {
-  slate_message_type_t                  type;
-  size_t                                messageSize;
-} slate_message_base_t;
-
-typedef struct slate_message_key_t {
-  slate_message_base_t                  base;
-  slate_keycode_t                       code;
-  slate_modifier_t                      modifier;
-  int                                   value;
-} slate_message_key_t;
-
-typedef struct slate_message_redraw_t {
-  slate_message_base_t                  base;
-  uint32_t                              topLeftX;
-  uint32_t                              topLeftY;
-  uint32_t                              regionWidth;
-  uint32_t                              regionHeight;
-} slate_message_redraw_t;
-
-typedef struct slate_message_resize_t {
-  slate_message_base_t                  base;
-  uint32_t                              characterColumns;
-  uint32_t                              characterRows;
-} slate_message_resize_t;
-
-typedef union slate_message_t {
-  slate_message_type_t                  messageType;
-  slate_message_base_t                  asBaseMessage;
-  slate_message_key_t                   asKeyMessage;
-  slate_message_redraw_t                asRedrawMessage;
-  slate_message_resize_t                asResizeMessage;
-} slate_message_t;
+// TODO: This should go elsewhere.
+//------------------------------------------------------------------------------
+#define P(pointer) ((pointer)->pImpl)
+#define W(pointer) ((slate_widget_t *)(pointer))
 
 ////////////////////////////////////////////////////////////////////////////////
 // Slate Structures
 ////////////////////////////////////////////////////////////////////////////////
 
-SLATE_HANDLE(slate_signal_t);
-SLATE_HANDLE(slate_slot_t);
-SLATE_HANDLE(slate_widget_t);
-SLATE_HANDLE(slate_application_t);
-SLATE_HANDLE(slate_status_bar_t);
-SLATE_HANDLE(slate_label_t);
+typedef void* (SLATEPTR *slate_alloc_pfn)(void * pData, size_t n, size_t align);
+typedef void* (SLATEPTR *slate_realloc_pfn)(void * pData, void * ptr, size_t n);
+typedef void  (SLATEPTR *slate_free_pfn)(void * pData, void * ptr);
 
-typedef void* (SLATEPTR *slate_alloc_pfn)(size_t n, size_t align);
-typedef void* (SLATEPTR *slate_realloc_pfn)(void * ptr, size_t n);
-typedef void  (SLATEPTR *slate_free_pfn)(void * ptr);
-
-typedef struct slate_alloc_t {
+//------------------------------------------------------------------------------
+struct slate_alloc_t {
   slate_alloc_pfn                       pfnAllocate;
   slate_realloc_pfn                     pfnReallocate;
   slate_free_pfn                        pfnFree;
   void *                                pUserData;
-} slate_alloc_t;
-
-typedef int (*slate_message_proc_t)(slate_message_t const *);
-
-typedef struct slate_application_info_t {
-  slate_alloc_t const *                 pAllocator;
-  char const *                          pApplicationName;
-  char const *                          pDescription;
-  char const *                          pVersion;
-  char const *                          pCopyright;
-} slate_application_info_t;
-
-////////////////////////////////////////////////////////////////////////////////
-// Slate Signals
-////////////////////////////////////////////////////////////////////////////////
-
-typedef int (*pfn_slate_onkey)(slate_widget_t * pTarget, slate_keycode_t code, int value);
-#define SLATE_TOKEN_ONKEY               SLATE_TOKENIZE('_','_','_','_','_','k','e','y')
-typedef int (*pfn_slate_onmessage)(slate_widget_t * pTarget, slate_message_t const * pMessage);
-#define SLATE_TOKEN_ONMESSAGE           SLATE_TOKENIZE('_','m','e','s','s','a','g','e')
-typedef int (*pfn_slate_onresize)(slate_widget_t * pTarget, uint32_t screenRows, uint32_t screenColumns);
-#define SLATE_TOKEN_ONRESIZE            SLATE_TOKENIZE('_','_','r','e','s','i','z','e')
-typedef int (*pfn_slate_onrecalculate)(slate_widget_t * pTarget);
-#define SLATE_TOKEN_ONRECALCULATE       SLATE_TOKENIZE('_','_','r','e','c','a','l','c')
-typedef int (*pfn_slate_onpaint)(slate_widget_t * pTarget, uint32_t availRows, uint32_t availColumns);
-#define SLATE_TOKEN_ONPAINT             SLATE_TOKENIZE('_','_','_','p','a','i','n','t')
-
-// Application Signals
-#define SLATE_APPLICATION_ONKEY         SLATE_TOKEN_ONKEY
-#define SLATE_APPLICATION_ONMESSAGE     SLATE_TOKEN_ONMESSAGE
-#define SLATE_APPLICATION_ONRESIZE      SLATE_TOKEN_ONRESIZE
-#define SLATE_APPLICATION_ONRECALCULATE SLATE_TOKEN_ONRECALCULATE
-#define SLATE_APPLICATION_ONPAINT       SLATE_TOKEN_ONPAINT
-
-// Status Bar Signals
-#define SLATE_STATUS_BAR_ONRECALCULATE  SLATE_TOKEN_ONRECALCULATE
-#define SLATE_STATUS_BAR_ONPAINT        SLATE_TOKEN_ONPAINT
-
-// Label Signals
-#define SLATE_LABEL_ONRECALCULATE       SLATE_TOKEN_ONRECALCULATE
-#define SLATE_LABEL_ONPAINT             SLATE_TOKEN_ONPAINT
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Slate API
 ////////////////////////////////////////////////////////////////////////////////
 
-char const * slate_message_string (
-  slate_message_type_t                  messageType
-);
-
-// slate_widget_t'
-
-void __slate_widget_init (
-  slate_widget_t *                      pWidget,
+//------------------------------------------------------------------------------
+void * slate_allocate (
   slate_alloc_t const *                 pAllocator,
-  slate_widget_type_t                   widgetType,
-  size_t                                widgetSize
+  size_t                                n,
+  size_t                                align
 );
 
-slate_signal_t * __slate_widget_find_signal (
-  slate_widget_t *                      pWidget,
-  slate_token_t                         token
-);
-
-slate_slot_t * __slate_widget_find_slot (
-  slate_widget_t *                      pWidget,
-  void const *                          pfnProcedure
-);
-
-int __slate_widget_add_signal (
-  slate_widget_t *                      pWidget,
-  slate_token_t                         token,
-  slate_signal_t **                     pSignal
-);
-
-int __slate_widget_add_slot (
-  slate_widget_t *                      pWidget,
-  void const *                          pfnProcedure,
-  slate_slot_t **                       pSlot
-);
-
-int __slate_widget_add_connect (
-  slate_widget_t *                      pWidget,
-  slate_token_t                         token,
-  void const *                          pfnProcedure
-);
-
-int __slate_widget_find_or_add_signal (
-  slate_widget_t *                      pWidget,
-  slate_token_t                         token,
-  slate_signal_t **                     pSignal
-);
-
-int __slate_widget_find_or_add_slot (
-  slate_widget_t *                      pWidget,
-  void const *                          pfnProcedure,
-  slate_slot_t **                       pSlot
-);
-
-int __slate_widget_connect (
-  slate_widget_t *                      pSource,
-  slate_token_t                         signalName,
-  slate_widget_t *                      pTarget,
-  void const *                          pSlotFunc
-);
-
-int __slate_widget_insert (
-  slate_widget_t *                      pParent,
-  slate_widget_t *                      pChild
-);
-
-void __slate_widget_dirty (
-  slate_widget_t *                      pWidget
-);
-
-#define slate_widget_dirty(pWidget) __slate_widget_dirty((slate_widget_t *)pWidget)
-
-#define slate_widget_init(pWidget, pAllocator, type)                            \
-__slate_widget_init((slate_widget_t *)pWidget, pAllocator, type, sizeof(*pWidget))
-
-#define slate_widget_connect(source, token, target, slot)                       \
-__slate_widget_connect((slate_widget_t *)source, token, (slate_widget_t *)target, (void const *)slot)
-
-#define slate_widget_insert(parent, child)                                      \
-__slate_widget_insert((slate_widget_t *)parent, (slate_widget_t *)child)
-
-#define slate_widget_find_signal(pWidget, token)                                \
-__slate_widget_find_signal((slate_widget_t *)pWidget, token)
-
-#define slate_widget_add_signal(pWidget, token, pSignal)                        \
-__slate_widget_add_signal((slate_widget_t *)pWidget, token, pSignal)
-
-#define slate_widget_add_connect(pWidget, token, slot)                          \
-__slate_widget_add_connect((slate_widget_t *)pWidget, token, (void const *)slot)
-
-// slate_application_t
-
-int slate_create_application (
-  slate_application_info_t const *      pCreateInfo,
-  slate_application_t **                pApplication
-);
-
-int slate_destroy_application (
-  slate_application_t *                 pApplication
-);
-
-int slate_run_application (
-  slate_application_t *                 pApplication
-);
-
-int slate_application_set_status_bar (
-  slate_application_t *                 pApplication,
-  slate_status_bar_t *                  pStatusBar
-);
-
-// slate_status_bar_t
-
-int slate_create_status_bar (
+//------------------------------------------------------------------------------
+void * slate_reallocate (
   slate_alloc_t const *                 pAllocator,
-  slate_status_bar_t **                 pStatusBar
-);
-
-// slate_label_t
-
-int slate_create_label (
-  slate_alloc_t const *                 pAllocator,
-  slate_label_t **                      pLabel
-);
-
-int slate_label_set_align (
-  slate_label_t *                       pLabel,
-  slate_align_t                         alignment
-);
-
-int slate_label_set_text (
-  slate_label_t *                       pLabel,
-  char const *                          text
-);
-
-int slate_label_set_text_n (
-  slate_label_t *                       pLabel,
-  char const *                          text,
+  void *                                ptr,
   size_t                                n
 );
 
-#define slate_label_set_text_k(pLabel, text) slate_label_set_text_n(pLabel, text, sizeof(text) - 1)
+//------------------------------------------------------------------------------
+void slate_free (
+  slate_alloc_t const *                 pAllocator,
+  void *                                ptr
+);
 
 #ifdef    __cplusplus
 }
 #endif // __cplusplus
-#endif // SLATE_H
+
+#endif // SLATE_SLATE_H
