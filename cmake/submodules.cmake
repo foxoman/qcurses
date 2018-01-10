@@ -1,5 +1,5 @@
 ################################################################################
-# Project: Slate
+# Project: QCurses
 # Legal  : Copyright Trent Reed 2017, All rights reserved.
 # Author : Trent Reed
 # About  : CMake code for initializing cmake-share git submodules.

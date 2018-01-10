@@ -1,5 +1,5 @@
 ################################################################################
-# Project: slate
+# Project: QCurses
 # Legal  : All content 2017 Trent Reed, all rights reserved.
 # Author : Trent Reed
 # About  : The main CMake script.
@@ -11,7 +11,7 @@ include(cmake/submodules.cmake)
 ################################################################################
 # Project Initialization
 ################################################################################
-project(slate C)
+project(QCurses C)
 
 ################################################################################
 # Project Configuration
@@ -39,42 +39,41 @@ include_directories(${CURSES_INCLUDE_DIRS})
 # Project Options
 ################################################################################
 # TODO: For now, while in early development, let's not turn on warnings.
-option(SLATE_BUILD_SAMPLES "Whether or not to build the sample applications." ON)
-option(SLATE_FULL_WARNINGS "Whether or not to compile with full warnings enabled." OFF)
+option(QCURSES_BUILD_SAMPLES "Whether or not to build the sample applications." ON)
+option(QCURSES_FULL_WARNINGS "Whether or not to compile with full warnings enabled." OFF)
 
 # Set full warnings for the compiler if requested.
-if(SLATE_FULL_WARNINGS)
+if(QCURSES_FULL_WARNINGS)
   include(FullWarnings)
 endif()
 
 ################################################################################
 # Core Library
 ################################################################################
-set(SLATE_SRC
-  slate/application.c
-  slate/application.h
-  slate/array.c
-  slate/array.h
-  slate/fwdslate.h
-  slate/label.c
-  slate/label.h
-  slate/math.h
-  slate/menu_bar.h
-  slate/slate.c
-  slate/slate.h
-  slate/status_bar.c
-  slate/status_bar.h
-  slate/widget.c
-  slate/widget.h
+set(QCURSES_SRC
+  qcurses/application.c
+  qcurses/application.h
+  qcurses/array.c
+  qcurses/array.h
+  qcurses/fwdqcurses.h
+  qcurses/label.c
+  qcurses/label.h
+  qcurses/math.h
+  qcurses/menu_bar.h
+  qcurses/qcurses.c
+  qcurses/qcurses.h
+  qcurses/status_bar.c
+  qcurses/status_bar.h
+  qcurses/widget.c
+  qcurses/widget.h
 )
 
-add_library(slate ${SLATE_SRC})
-target_link_libraries(slate ${CURSES_LIBRARIES})
+add_library(qcurses ${QCURSES_SRC})
+target_link_libraries(qcurses ${CURSES_LIBRARIES})
 
 ################################################################################
 # Misc. Binaries and Drivers
 ################################################################################
-
-if(SLATE_BUILD_SAMPLES)
+if(QCURSES_BUILD_SAMPLES)
   add_subdirectory(samples)
 endif()

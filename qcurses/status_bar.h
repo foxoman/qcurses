@@ -12,13 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *------------------------------------------------------------------------------
- * Slate Terminal UI Include Header
  ******************************************************************************/
-#ifndef   SLATE_STATUS_BAR_H
-#define   SLATE_STATUS_BAR_H
+#ifndef   QCURSES_STATUS_BAR_H
+#define   QCURSES_STATUS_BAR_H
 
-#include "slate.h"
+#include "qcurses.h"
 #include "widget.h"
 
 #ifdef    __cplusplus
@@ -26,33 +24,33 @@ extern "C" {
 #endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
-// Definition
+// Status Bar Definition
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-SLATE_WIDGET_BEGIN(slate_status_bar_t, slate_widget_parent_t)
+QCURSES_WIDGET_BEGIN(qcurses_status_bar_t, qcurses_widget_parent_t)
   // Intentionally Empty
-SLATE_WIDGET_END
+QCURSES_WIDGET_END
 
 ////////////////////////////////////////////////////////////////////////////////
-// Slate API
+// Status Bar Functions
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-int slate_create_status_bar (
-  slate_alloc_t const *                 pAllocator,
-  slate_status_bar_t **                 pStatusBar
+int qcurses_create_status_bar (
+  qcurses_alloc_t const *               pAllocator,
+  qcurses_status_bar_t **               pStatusBar
 );
 
 //------------------------------------------------------------------------------
-void slate_destroy_status_bar (
-  slate_status_bar_t *                  pStatusBar
+void qcurses_destroy_status_bar (
+  qcurses_status_bar_t *                pStatusBar
 );
 
 //------------------------------------------------------------------------------
-static int __slate_status_bar_insert (
-  slate_status_bar_t *                  pStatusBar,
-  slate_widget_t *                      pWidget
+static int __qcurses_status_bar_insert (
+  qcurses_status_bar_t *                pStatusBar,
+  qcurses_widget_t *                    pWidget
 ) {
   (void)pStatusBar;
   (void)pWidget;
@@ -60,14 +58,14 @@ static int __slate_status_bar_insert (
 }
 
 //------------------------------------------------------------------------------
-#define slate_status_bar_insert(pStatusBar, pWidget)                            \
-  __slate_status_bar_insert(                                                    \
+#define qcurses_status_bar_insert(pStatusBar, pWidget)                          \
+  __qcurses_status_bar_insert(                                                  \
     pStatusBar,                                                                 \
-    (slate_widget_t *)(pWidget)                                                 \
+    (qcurses_widget_t *)(pWidget)                                               \
   )
 
 #ifdef    __cplusplus
 }
 #endif // __cplusplus
 
-#endif // SLATE_STATUS_BAR_H
+#endif // QCURSES_STATUS_BAR_H

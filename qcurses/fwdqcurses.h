@@ -12,11 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *------------------------------------------------------------------------------
- * Slate Terminal UI Include Header
  ******************************************************************************/
-#ifndef   SLATE_FWDSLATE_H
-#define   SLATE_FWDSLATE_H
+#ifndef   QCURSES_FWDQCURSES_H
+#define   QCURSES_FWDQCURSES_H
 
 #include <stdint.h> // integral typedefs
 #include <stdlib.h> // size_t typedef
@@ -26,50 +24,50 @@ extern "C" {
 #endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
-// Slate Global Defines
+// QCurses Defines
 ////////////////////////////////////////////////////////////////////////////////
 
-#define SLATE_DECLARE_STRUCT(name)    typedef struct name name
-#define SLATE_DECLARE_ENUM(name)      typedef enum name name
-#define SLATE_DECLARE_FLAG_TYPE(name) typedef slate_flags_t name
-#define SLATE_DECLARE_FLAG_BITS(name) typedef enum name name
-#define SLATE_DECLARE_FLAGS(bitsName, flagName)                                 \
-  SLATE_DECLARE_FLAG_BITS(bitsName); SLATE_DECLARE_FLAG_TYPE(flagName)
+#define QCURSES_DECLARE_STRUCT(name)    typedef struct name name
+#define QCURSES_DECLARE_ENUM(name)      typedef enum name name
+#define QCURSES_DECLARE_FLAG_TYPE(name) typedef qcurses_flags_t name
+#define QCURSES_DECLARE_FLAG_BITS(name) typedef enum name name
+#define QCURSES_DECLARE_FLAGS(bitsName, flagName)                               \
+  QCURSES_DECLARE_FLAG_BITS(bitsName); QCURSES_DECLARE_FLAG_TYPE(flagName)
 
 ////////////////////////////////////////////////////////////////////////////////
-// Slate Global Typedefs
+// QCurses Typedefs
 ////////////////////////////////////////////////////////////////////////////////
 
-typedef int       slate_bool_t;
-typedef uint32_t  slate_flags_t;
+typedef int       qcurses_bool_t;
+typedef uint32_t  qcurses_flags_t;
 
 ////////////////////////////////////////////////////////////////////////////////
-// Slate Forward Declarations
+// QCurses Declarations
 ////////////////////////////////////////////////////////////////////////////////
 
 // Enums
-SLATE_DECLARE_ENUM(slate_keycode_t);
+QCURSES_DECLARE_ENUM(qcurses_keycode_t);
 
 // Flags
-SLATE_DECLARE_FLAGS(slate_align_bits_t, slate_align_t);
-SLATE_DECLARE_FLAGS(slate_modifier_bits_t, slate_modifier_t);
-SLATE_DECLARE_FLAGS(slate_policy_bits_t, slate_policy_t);
-SLATE_DECLARE_FLAGS(slate_state_bits_t, slate_state_t);
+QCURSES_DECLARE_FLAGS(qcurses_align_bits_t, qcurses_align_t);
+QCURSES_DECLARE_FLAGS(qcurses_modifier_bits_t, qcurses_modifier_t);
+QCURSES_DECLARE_FLAGS(qcurses_policy_bits_t, qcurses_policy_t);
+QCURSES_DECLARE_FLAGS(qcurses_state_bits_t, qcurses_state_t);
 
 // Structs
-SLATE_DECLARE_STRUCT(slate_alloc_t);
-SLATE_DECLARE_STRUCT(slate_bounds_t);
-SLATE_DECLARE_STRUCT(slate_application_t);
-SLATE_DECLARE_STRUCT(slate_application_info_t);
-SLATE_DECLARE_STRUCT(slate_coord_t);
-SLATE_DECLARE_STRUCT(slate_region_t);
-SLATE_DECLARE_STRUCT(slate_slot_t);
-SLATE_DECLARE_STRUCT(slate_widget_t);
-SLATE_DECLARE_STRUCT(slate_widget_config_t);
-SLATE_DECLARE_STRUCT(slate_widget_parent_t);
+QCURSES_DECLARE_STRUCT(qcurses_alloc_t);
+QCURSES_DECLARE_STRUCT(qcurses_bounds_t);
+QCURSES_DECLARE_STRUCT(qcurses_application_t);
+QCURSES_DECLARE_STRUCT(qcurses_application_info_t);
+QCURSES_DECLARE_STRUCT(qcurses_coord_t);
+QCURSES_DECLARE_STRUCT(qcurses_region_t);
+QCURSES_DECLARE_STRUCT(qcurses_slot_t);
+QCURSES_DECLARE_STRUCT(qcurses_widget_t);
+QCURSES_DECLARE_STRUCT(qcurses_widget_config_t);
+QCURSES_DECLARE_STRUCT(qcurses_widget_parent_t);
 
 #ifdef    __cplusplus
 }
 #endif // __cplusplus
 
-#endif // SLATE_FWDSLATE_H
+#endif // QCURSES_FWDQCURSES_H

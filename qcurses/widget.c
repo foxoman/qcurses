@@ -12,8 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *------------------------------------------------------------------------------
- * Slate Terminal UI Source
  ******************************************************************************/
 
 #include "widget.h"
@@ -24,13 +22,13 @@ extern "C" {
 #endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
-// Slate Public Functions
+// Widget Functions
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-static int __slate_signal_resize (
-  slate_widget_t *                      pWidget,
-  slate_signal_t *                      pSignal,
+static int __qcurses_signal_resize (
+  qcurses_widget_t *                    pWidget,
+  qcurses_signal_t *                    pSignal,
   uint32_t                              newCapacity
 ) {
 
@@ -39,20 +37,20 @@ static int __slate_signal_resize (
     return EINVAL;
   }
 
-  return slate_array_resize(pWidget->pAllocator, pSignal, newCapacity);
+  return qcurses_array_resize(pWidget->pAllocator, pSignal, newCapacity);
 }
 
 //------------------------------------------------------------------------------
-static int __slate_signal_grow (
-  slate_widget_t *                      pWidget,
-  slate_signal_t *                      pSignal
+static int __qcurses_signal_grow (
+  qcurses_widget_t *                    pWidget,
+  qcurses_signal_t *                    pSignal
 ) {
-  return slate_array_grow(pWidget->pAllocator, pSignal);
+  return qcurses_array_grow(pWidget->pAllocator, pSignal);
 }
 
 //------------------------------------------------------------------------------
-static int __slate_slots_resize (
-  slate_widget_t *                      pWidget,
+static int __qcurses_slots_resize (
+  qcurses_widget_t *                    pWidget,
   uint32_t                              newCapacity
 ) {
 
@@ -61,25 +59,25 @@ static int __slate_slots_resize (
     return EINVAL;
   }
 
-  return slate_array_resize(pWidget->pAllocator, &pWidget->connections, newCapacity);
+  return qcurses_array_resize(pWidget->pAllocator, &pWidget->connections, newCapacity);
 }
 
 //------------------------------------------------------------------------------
-static int __slate_slots_grow (
-  slate_widget_t *                      pWidget
+static int __qcurses_slots_grow (
+  qcurses_widget_t *                    pWidget
 ) {
-  return slate_array_grow(pWidget->pAllocator, &pWidget->connections);
+  return qcurses_array_grow(pWidget->pAllocator, &pWidget->connections);
 }
 
 //------------------------------------------------------------------------------
-int __slate_create_widget (
-  slate_widget_config_t const *         pConfig,
-  slate_widget_t **                     pResult
+int __qcurses_create_widget (
+  qcurses_widget_config_t const *       pConfig,
+  qcurses_widget_t **                   pResult
 ) {
-  slate_widget_t * pWidget;
+  qcurses_widget_t * pWidget;
 
   // Allocate the widget of the desired size.
-  pWidget = slate_allocate(
+  pWidget = qcurses_allocate(
     pConfig->pAllocator,
     pConfig->widgetSize,
     1
@@ -97,45 +95,45 @@ int __slate_create_widget (
   pWidget->pfnDestroy = pConfig->pfnDestroy;
   pWidget->pfnRecalculate = pConfig->pfnRecalculate;
   pWidget->pfnPaint = pConfig->pfnPaint;
-  pWidget->minimumBounds = slate_bounds(0, 0);
-  pWidget->maximumBounds = slate_bounds(SLATE_INFINITE, SLATE_INFINITE);
-  pWidget->sizePolicy = SLATE_POLICY_PREFERRED;
-  pWidget->internalState = SLATE_STATE_DIRTY_BIT | SLATE_STATE_VISIBLE_BIT;
+  pWidget->minimumBounds = qcurses_bounds(0, 0);
+  pWidget->maximumBounds = qcurses_bounds(QCURSES_INFINITE, QCURSES_INFINITE);
+  pWidget->sizePolicy = QCURSES_POLICY_PREFERRED;
+  pWidget->internalState = QCURSES_STATE_DIRTY_BIT | QCURSES_STATE_VISIBLE_BIT;
 
   *pResult = pWidget;
   return 0;
 }
 
 //------------------------------------------------------------------------------
-void __slate_destroy_widget (
-  slate_widget_t *                      pWidget
+void __qcurses_destroy_widget (
+  qcurses_widget_t *                    pWidget
 ) {
   pWidget->pfnDestroy(pWidget);
 }
 
 //------------------------------------------------------------------------------
-int __slate_widget_prepare_connection (
-  slate_widget_t *                      pSource,
-  slate_widget_t *                      pTarget,
-  slate_signal_t *                      pSignal
+int __qcurses_widget_prepare_connection (
+  qcurses_widget_t *                    pSource,
+  qcurses_widget_t *                    pTarget,
+  qcurses_signal_t *                    pSignal
 ) {
   int err;
-  slate_connection_t * pConnection;
+  qcurses_connection_t * pConnection;
 
   // Grow the signals/slots arrays if needed.
-  err = slate_array_ensure(pSource->pAllocator, pSignal);
+  err = qcurses_array_ensure(pSource->pAllocator, pSignal);
   if (err) {
     return err;
   }
-  err = slate_array_ensure(pTarget->pAllocator, &pTarget->connections);
+  err = qcurses_array_ensure(pTarget->pAllocator, &pTarget->connections);
   if (err) {
     return err;
   }
 
   // Construct a new connection (owned by target).
-  pConnection = slate_allocate(
+  pConnection = qcurses_allocate(
     pTarget->pAllocator,
-    sizeof(slate_connection_t),
+    sizeof(qcurses_connection_t),
     1
   );
   if (!pConnection) {
@@ -150,31 +148,31 @@ int __slate_widget_prepare_connection (
 
   // Attach the connection to the signal/slot.
   // Note: No need to check the result, since we already ensured capacity.
-  (void)slate_array_push(pSource->pAllocator, pSignal, pConnection);
-  (void)slate_array_push(pTarget->pAllocator, &pTarget->connections, pConnection);
+  (void)qcurses_array_push(pSource->pAllocator, pSignal, pConnection);
+  (void)qcurses_array_push(pTarget->pAllocator, &pTarget->connections, pConnection);
 
   return 0;
 }
 
 //------------------------------------------------------------------------------
 // TODO: Do we need an iterative parent mark_dirty function?
-slate_state_t __slate_widget_mark_dirty (
-  slate_widget_t *                      pWidget
+qcurses_state_t __qcurses_widget_mark_dirty (
+  qcurses_widget_t *                    pWidget
 ) {
-  slate_state_t newState;
+  qcurses_state_t newState;
 
   // Mark the state of the current widget as dirty,
   // We return the widget state simply to adhere to other mark_*() return values.
-  slate_widget_mark_state(pWidget, SLATE_STATE_DIRTY_BIT);
+  qcurses_widget_mark_state(pWidget, QCURSES_STATE_DIRTY_BIT);
   newState = pWidget->internalState;
 
   // Iteratively mark the parents recursive until we find a dirty parent.
   // This allows the update chain to know that it needs to be refreshed.
   while ((pWidget = pWidget->pParent)) {
-    if (slate_widget_check_state(pWidget, SLATE_STATE_DIRTY_BIT)) {
+    if (qcurses_widget_check_state(pWidget, QCURSES_STATE_DIRTY_BIT)) {
       break;
     }
-    slate_widget_mark_state(pWidget, SLATE_STATE_DIRTY_BIT);
+    qcurses_widget_mark_state(pWidget, QCURSES_STATE_DIRTY_BIT);
   }
 
   return newState;

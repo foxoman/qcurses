@@ -12,8 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *------------------------------------------------------------------------------
- * Slate Terminal UI Source
  ******************************************************************************/
 
 #include "application.h"
@@ -25,29 +23,29 @@ extern "C" {
 #endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
-// Slate Private Implementations
+// Application Implementations
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-SLATE_PIMPL_STRUCT(slate_application_t) {
+QCURSES_PIMPL_STRUCT(qcurses_application_t) {
   WINDOW *                              mainWindow;
-  slate_bool_t                          isQuitting;
-  slate_widget_t *                      pMainWidget;
-  slate_menu_bar_t *                    pMenuBar;       // TODO: Implement.
-  slate_status_bar_t *                  pStatusBar;     // TODO: Implement.
+  qcurses_bool_t                        isQuitting;
+  qcurses_widget_t *                    pMainWidget;
+  qcurses_menu_bar_t *                  pMenuBar;       // TODO: Implement.
+  qcurses_status_bar_t *                pStatusBar;     // TODO: Implement.
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// Slate Public Functions
+// Application Functions
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-#define SLATE_CASE(theirs, ours) case theirs: code = ours; break
-static int slate_application_update_input (
-  slate_application_t *                 pApplication
+#define QCURSES_CASE(theirs, ours) case theirs: code = ours; break
+static int qcurses_application_update_input (
+  qcurses_application_t *               pApplication
 ) {
   int value;
-  slate_keycode_t code;
+  qcurses_keycode_t code;
 
   // TODO: Add the shift/Ctrl/Alt key modifiers - this could be useful to some.
   //       https://stackoverflow.com/questions/9750588/how-to-get-ctrl-shift-or-alt-with-getch-ncurses
@@ -64,109 +62,109 @@ static int slate_application_update_input (
     // Standard ASCII range
     case 'a' ... 'z':
     case '0' ... '9':
-      code = (slate_keycode_t)value;
+      code = (qcurses_keycode_t)value;
       break;
     case 'A' ... 'Z':
-      code = (slate_keycode_t)tolower(value);
+      code = (qcurses_keycode_t)tolower(value);
       break;
 
     // Standard ASCII range (mapped)
-    SLATE_CASE('\x1B', SLATE_KEYCODE_ESCAPE);
-    SLATE_CASE('`', SLATE_KEYCODE_BACKTICK);
-    SLATE_CASE('~', SLATE_KEYCODE_BACKTICK);
-    SLATE_CASE('!', SLATE_KEYCODE_1);
-    SLATE_CASE('@', SLATE_KEYCODE_2);
-    SLATE_CASE('#', SLATE_KEYCODE_3);
-    SLATE_CASE('$', SLATE_KEYCODE_4);
-    SLATE_CASE('%', SLATE_KEYCODE_5);
-    SLATE_CASE('^', SLATE_KEYCODE_6);
-    SLATE_CASE('&', SLATE_KEYCODE_7);
-    SLATE_CASE('*', SLATE_KEYCODE_8);
-    SLATE_CASE('(', SLATE_KEYCODE_9);
-    SLATE_CASE(')', SLATE_KEYCODE_0);
-    SLATE_CASE('-', SLATE_KEYCODE_MINUS);
-    SLATE_CASE('_', SLATE_KEYCODE_MINUS);
-    SLATE_CASE('=', SLATE_KEYCODE_EQUALS);
-    SLATE_CASE('+', SLATE_KEYCODE_EQUALS);
-    SLATE_CASE('\t', SLATE_KEYCODE_TAB);
-    SLATE_CASE('[', SLATE_KEYCODE_LEFT_BRACKET);
-    SLATE_CASE('{', SLATE_KEYCODE_LEFT_BRACKET);
-    SLATE_CASE(']', SLATE_KEYCODE_RIGHT_BRACKET);
-    SLATE_CASE('}', SLATE_KEYCODE_RIGHT_BRACKET);
-    SLATE_CASE('\\', SLATE_KEYCODE_REVERSE_SOLIDUS);
-    SLATE_CASE('|', SLATE_KEYCODE_REVERSE_SOLIDUS);
-    SLATE_CASE(';', SLATE_KEYCODE_SEMICOLON);
-    SLATE_CASE(':', SLATE_KEYCODE_SEMICOLON);
-    SLATE_CASE('\'', SLATE_KEYCODE_SINGLE_QUOTE);
-    SLATE_CASE('"', SLATE_KEYCODE_SINGLE_QUOTE);
-    SLATE_CASE('\n', SLATE_KEYCODE_RETURN);
-    SLATE_CASE(',', SLATE_KEYCODE_COMMA);
-    SLATE_CASE('<', SLATE_KEYCODE_COMMA);
-    SLATE_CASE('.', SLATE_KEYCODE_PERIOD);
-    SLATE_CASE('>', SLATE_KEYCODE_PERIOD);
-    SLATE_CASE('/', SLATE_KEYCODE_SOLIDUS);
-    SLATE_CASE('?', SLATE_KEYCODE_SOLIDUS);
-    SLATE_CASE(' ', SLATE_KEYCODE_SPACE);
+    QCURSES_CASE('\x1B', QCURSES_KEYCODE_ESCAPE);
+    QCURSES_CASE('`', QCURSES_KEYCODE_BACKTICK);
+    QCURSES_CASE('~', QCURSES_KEYCODE_BACKTICK);
+    QCURSES_CASE('!', QCURSES_KEYCODE_1);
+    QCURSES_CASE('@', QCURSES_KEYCODE_2);
+    QCURSES_CASE('#', QCURSES_KEYCODE_3);
+    QCURSES_CASE('$', QCURSES_KEYCODE_4);
+    QCURSES_CASE('%', QCURSES_KEYCODE_5);
+    QCURSES_CASE('^', QCURSES_KEYCODE_6);
+    QCURSES_CASE('&', QCURSES_KEYCODE_7);
+    QCURSES_CASE('*', QCURSES_KEYCODE_8);
+    QCURSES_CASE('(', QCURSES_KEYCODE_9);
+    QCURSES_CASE(')', QCURSES_KEYCODE_0);
+    QCURSES_CASE('-', QCURSES_KEYCODE_MINUS);
+    QCURSES_CASE('_', QCURSES_KEYCODE_MINUS);
+    QCURSES_CASE('=', QCURSES_KEYCODE_EQUALS);
+    QCURSES_CASE('+', QCURSES_KEYCODE_EQUALS);
+    QCURSES_CASE('\t', QCURSES_KEYCODE_TAB);
+    QCURSES_CASE('[', QCURSES_KEYCODE_LEFT_BRACKET);
+    QCURSES_CASE('{', QCURSES_KEYCODE_LEFT_BRACKET);
+    QCURSES_CASE(']', QCURSES_KEYCODE_RIGHT_BRACKET);
+    QCURSES_CASE('}', QCURSES_KEYCODE_RIGHT_BRACKET);
+    QCURSES_CASE('\\', QCURSES_KEYCODE_REVERSE_SOLIDUS);
+    QCURSES_CASE('|', QCURSES_KEYCODE_REVERSE_SOLIDUS);
+    QCURSES_CASE(';', QCURSES_KEYCODE_SEMICOLON);
+    QCURSES_CASE(':', QCURSES_KEYCODE_SEMICOLON);
+    QCURSES_CASE('\'', QCURSES_KEYCODE_SINGLE_QUOTE);
+    QCURSES_CASE('"', QCURSES_KEYCODE_SINGLE_QUOTE);
+    QCURSES_CASE('\n', QCURSES_KEYCODE_RETURN);
+    QCURSES_CASE(',', QCURSES_KEYCODE_COMMA);
+    QCURSES_CASE('<', QCURSES_KEYCODE_COMMA);
+    QCURSES_CASE('.', QCURSES_KEYCODE_PERIOD);
+    QCURSES_CASE('>', QCURSES_KEYCODE_PERIOD);
+    QCURSES_CASE('/', QCURSES_KEYCODE_SOLIDUS);
+    QCURSES_CASE('?', QCURSES_KEYCODE_SOLIDUS);
+    QCURSES_CASE(' ', QCURSES_KEYCODE_SPACE);
 
     // Special ncurses keycodes
-    SLATE_CASE(KEY_DOWN, SLATE_KEYCODE_DOWN);
-    SLATE_CASE(KEY_UP, SLATE_KEYCODE_UP);
-    SLATE_CASE(KEY_LEFT, SLATE_KEYCODE_LEFT);
-    SLATE_CASE(KEY_RIGHT, SLATE_KEYCODE_RIGHT);
-    SLATE_CASE(KEY_HOME, SLATE_KEYCODE_HOME);
-    SLATE_CASE(KEY_BACKSPACE, SLATE_KEYCODE_BACKSPACE);
-    SLATE_CASE(KEY_F(0), SLATE_KEYCODE_F0);
-    SLATE_CASE(KEY_F(1), SLATE_KEYCODE_F1);
-    SLATE_CASE(KEY_F(2), SLATE_KEYCODE_F2);
-    SLATE_CASE(KEY_F(3), SLATE_KEYCODE_F3);
-    SLATE_CASE(KEY_F(4), SLATE_KEYCODE_F4);
-    SLATE_CASE(KEY_F(5), SLATE_KEYCODE_F5);
-    SLATE_CASE(KEY_F(6), SLATE_KEYCODE_F6);
-    SLATE_CASE(KEY_F(7), SLATE_KEYCODE_F7);
-    SLATE_CASE(KEY_F(8), SLATE_KEYCODE_F8);
-    SLATE_CASE(KEY_F(9), SLATE_KEYCODE_F9);
-    SLATE_CASE(KEY_F(10), SLATE_KEYCODE_F10);
-    SLATE_CASE(KEY_F(11), SLATE_KEYCODE_F11);
-    SLATE_CASE(KEY_F(12), SLATE_KEYCODE_F12);
-    SLATE_CASE(KEY_DC, SLATE_KEYCODE_DELETE);
-    SLATE_CASE(KEY_IC, SLATE_KEYCODE_INSERT);
-    SLATE_CASE(KEY_SF, SLATE_KEYCODE_DOWN);
-    SLATE_CASE(KEY_SR, SLATE_KEYCODE_UP);
-    SLATE_CASE(KEY_NPAGE, SLATE_KEYCODE_PAGE_DOWN);
-    SLATE_CASE(KEY_PPAGE, SLATE_KEYCODE_PAGE_UP);
-    SLATE_CASE(KEY_BTAB, SLATE_KEYCODE_TAB);
-    SLATE_CASE(KEY_ENTER, SLATE_KEYCODE_RETURN);
-    SLATE_CASE(KEY_END, SLATE_KEYCODE_END);
-    SLATE_CASE(KEY_SDC, SLATE_KEYCODE_DELETE);
-    SLATE_CASE(KEY_SEND, SLATE_KEYCODE_END);
-    SLATE_CASE(KEY_SHOME, SLATE_KEYCODE_HOME);
-    SLATE_CASE(KEY_SLEFT, SLATE_KEYCODE_LEFT);
-    SLATE_CASE(KEY_SNEXT, SLATE_KEYCODE_PAGE_DOWN);
-    SLATE_CASE(KEY_SPREVIOUS, SLATE_KEYCODE_PAGE_UP);
-    SLATE_CASE(KEY_SRIGHT, SLATE_KEYCODE_RIGHT);
+    QCURSES_CASE(KEY_DOWN, QCURSES_KEYCODE_DOWN);
+    QCURSES_CASE(KEY_UP, QCURSES_KEYCODE_UP);
+    QCURSES_CASE(KEY_LEFT, QCURSES_KEYCODE_LEFT);
+    QCURSES_CASE(KEY_RIGHT, QCURSES_KEYCODE_RIGHT);
+    QCURSES_CASE(KEY_HOME, QCURSES_KEYCODE_HOME);
+    QCURSES_CASE(KEY_BACKSPACE, QCURSES_KEYCODE_BACKSPACE);
+    QCURSES_CASE(KEY_F(0), QCURSES_KEYCODE_F0);
+    QCURSES_CASE(KEY_F(1), QCURSES_KEYCODE_F1);
+    QCURSES_CASE(KEY_F(2), QCURSES_KEYCODE_F2);
+    QCURSES_CASE(KEY_F(3), QCURSES_KEYCODE_F3);
+    QCURSES_CASE(KEY_F(4), QCURSES_KEYCODE_F4);
+    QCURSES_CASE(KEY_F(5), QCURSES_KEYCODE_F5);
+    QCURSES_CASE(KEY_F(6), QCURSES_KEYCODE_F6);
+    QCURSES_CASE(KEY_F(7), QCURSES_KEYCODE_F7);
+    QCURSES_CASE(KEY_F(8), QCURSES_KEYCODE_F8);
+    QCURSES_CASE(KEY_F(9), QCURSES_KEYCODE_F9);
+    QCURSES_CASE(KEY_F(10), QCURSES_KEYCODE_F10);
+    QCURSES_CASE(KEY_F(11), QCURSES_KEYCODE_F11);
+    QCURSES_CASE(KEY_F(12), QCURSES_KEYCODE_F12);
+    QCURSES_CASE(KEY_DC, QCURSES_KEYCODE_DELETE);
+    QCURSES_CASE(KEY_IC, QCURSES_KEYCODE_INSERT);
+    QCURSES_CASE(KEY_SF, QCURSES_KEYCODE_DOWN);
+    QCURSES_CASE(KEY_SR, QCURSES_KEYCODE_UP);
+    QCURSES_CASE(KEY_NPAGE, QCURSES_KEYCODE_PAGE_DOWN);
+    QCURSES_CASE(KEY_PPAGE, QCURSES_KEYCODE_PAGE_UP);
+    QCURSES_CASE(KEY_BTAB, QCURSES_KEYCODE_TAB);
+    QCURSES_CASE(KEY_ENTER, QCURSES_KEYCODE_RETURN);
+    QCURSES_CASE(KEY_END, QCURSES_KEYCODE_END);
+    QCURSES_CASE(KEY_SDC, QCURSES_KEYCODE_DELETE);
+    QCURSES_CASE(KEY_SEND, QCURSES_KEYCODE_END);
+    QCURSES_CASE(KEY_SHOME, QCURSES_KEYCODE_HOME);
+    QCURSES_CASE(KEY_SLEFT, QCURSES_KEYCODE_LEFT);
+    QCURSES_CASE(KEY_SNEXT, QCURSES_KEYCODE_PAGE_DOWN);
+    QCURSES_CASE(KEY_SPREVIOUS, QCURSES_KEYCODE_PAGE_UP);
+    QCURSES_CASE(KEY_SRIGHT, QCURSES_KEYCODE_RIGHT);
 
     // Unhandled (error)
     default:
-      code = SLATE_KEYCODE_INVALID;
+      code = QCURSES_KEYCODE_INVALID;
       mvprintw(0, 0, "Unhandled value: 0x%x (%d) (0%o)\n", value, value, value);
       break;
   }
-  slate_widget_emit(pApplication, onKey, code, value);
+  qcurses_widget_emit(pApplication, onKey, code, value);
 
   return 0;
 }
-#undef SLATE_CASE
+#undef QCURSES_CASE
 
 //------------------------------------------------------------------------------
-static int SLATECALL slate_application_recalculate (
-  slate_application_t *                 pApplication,
-  slate_region_t const *                pRegion
+static int QCURSESCALL qcurses_application_recalculate (
+  qcurses_application_t *               pApplication,
+  qcurses_region_t const *              pRegion
 ) {
   int err;
 
   // If the actual region has not changed, we can simply ignore the recalculate step.
   // This means a recalculate was requested, but that none of the math would change.
-  if (slate_region_equal(&W(pApplication)->outerRegion, pRegion)) {
+  if (qcurses_region_equal(&W(pApplication)->outerRegion, pRegion)) {
     return 0;
   }
 
@@ -174,17 +172,17 @@ static int SLATECALL slate_application_recalculate (
   // Application will ignore minimum/maximum size since it has no control over it.
   // Application also ignores size policies, instead always fixing to the size of the screen.
   // Because of this, in case the user erroneously changed these values, we should reset.
-  slate_widget_mark_state(pApplication, SLATE_STATE_DIRTY_BIT);
-  W(pApplication)->sizePolicy     = SLATE_POLICY_FIXED;
-  W(pApplication)->minimumBounds  = slate_bounds(0, 0);
-  W(pApplication)->maximumBounds  = slate_bounds(SLATE_INFINITE, SLATE_INFINITE);
+  qcurses_widget_mark_state(pApplication, QCURSES_STATE_DIRTY_BIT);
+  W(pApplication)->sizePolicy     = QCURSES_POLICY_FIXED;
+  W(pApplication)->minimumBounds  = qcurses_bounds(0, 0);
+  W(pApplication)->maximumBounds  = qcurses_bounds(QCURSES_INFINITE, QCURSES_INFINITE);
   W(pApplication)->contentBounds  = pRegion->bounds;
   W(pApplication)->outerRegion    = *pRegion;
 
   // The central widget should fill the remaining space that menu/status aren't filling.
   // TODO: Right now, menu_bar and status_bar aren't implemented - so same as pRegion.
-  if (slate_widget_check(P(pApplication)->pMainWidget)) {
-    err = slate_widget_recalculate(P(pApplication)->pMainWidget, pRegion);
+  if (qcurses_widget_check(P(pApplication)->pMainWidget)) {
+    err = qcurses_widget_recalculate(P(pApplication)->pMainWidget, pRegion);
     if (err) {
       return err;
     }
@@ -194,9 +192,9 @@ static int SLATECALL slate_application_recalculate (
 }
 
 //------------------------------------------------------------------------------
-static int slate_application_paint (
-  slate_application_t *                 pApplication,
-  slate_region_t const *                pRegion
+static int qcurses_application_paint (
+  qcurses_application_t *               pApplication,
+  qcurses_region_t const *              pRegion
 ) {
   int err;
 
@@ -204,24 +202,24 @@ static int slate_application_paint (
   // TODO: Why do we store the painterRegion in each widget if we are just going to pass it in again?
   //       Is there even a need for a recalculate step that is separate from painting?
   //       Should take some time to seriously consider this aspect of the design, because it doesn't make sense.
-  if (slate_widget_check(P(pApplication)->pMainWidget)) {
-    err = slate_widget_paint(P(pApplication)->pMainWidget, pRegion);
+  if (qcurses_widget_check(P(pApplication)->pMainWidget)) {
+    err = qcurses_widget_paint(P(pApplication)->pMainWidget, pRegion);
     if (err) {
       return err;
     }
   }
 
-  slate_widget_unmark_dirty(pApplication);
+  qcurses_widget_unmark_dirty(pApplication);
   return 0;
 }
 
 //------------------------------------------------------------------------------
-static int slate_application_update_resize (
-  slate_application_t *                 pApplication
+static int qcurses_application_update_resize (
+  qcurses_application_t *               pApplication
 ) {
   int err;
   int x, y;
-  slate_region_t resize;
+  qcurses_region_t resize;
 
   // Grab the current max x/y.
   err = getmaxyx(stdscr, y, x);
@@ -246,7 +244,7 @@ static int slate_application_update_resize (
   }
 
   // If they haven't changed from our previous x/y, nothing to do.
-  slate_bool_t const screenSizeChanged = SLATE_BOOL(
+  qcurses_bool_t const screenSizeChanged = QCURSES_BOOL(
     (W(pApplication)->contentBounds.columns != resize.bounds.columns) ||
     (W(pApplication)->contentBounds.rows    != resize.bounds.rows   )
   );
@@ -255,10 +253,10 @@ static int slate_application_update_resize (
   }
 
   // Update the last-known application screen sizes.
-  slate_widget_emit(pApplication, onResize, &resize.bounds);
+  qcurses_widget_emit(pApplication, onResize, &resize.bounds);
 
   // Recalculate the sizes of all the widgets within the application.
-  err = slate_application_recalculate(pApplication, &resize);
+  err = qcurses_application_recalculate(pApplication, &resize);
   if (err) {
     return err;
   }
@@ -267,8 +265,8 @@ static int slate_application_update_resize (
 }
 
 //------------------------------------------------------------------------------
-static int slate_application_update (
-  slate_application_t *                 pApplication
+static int qcurses_application_update (
+  qcurses_application_t *               pApplication
 ) {
   int err;
 
@@ -281,7 +279,7 @@ static int slate_application_update (
     return EFAULT;
   }
   do {
-    err = slate_application_update_input(pApplication);
+    err = qcurses_application_update_input(pApplication);
   } while (!err);
   if (err != ENODATA) {
     return err;
@@ -293,14 +291,14 @@ static int slate_application_update (
   }
 
   // Process pending resize (if resized).
-  err = slate_application_update_resize(pApplication);
+  err = qcurses_application_update_resize(pApplication);
   if (err) {
     return err;
   }
 
   // Handle the visual update iff the application is marked dirty.
-  if (slate_widget_is_dirty(pApplication)) {
-    err = slate_application_paint(pApplication, &W(pApplication)->outerRegion);
+  if (qcurses_widget_is_dirty(pApplication)) {
+    err = qcurses_application_paint(pApplication, &W(pApplication)->outerRegion);
     if (err) {
       return err;
     }
@@ -318,7 +316,7 @@ static int slate_application_update (
   if (err == ERR) {
     return EFAULT;
   }
-  err = slate_application_update_input(pApplication);
+  err = qcurses_application_update_input(pApplication);
   if (err == ERR) {
     return err;
   }
@@ -327,23 +325,23 @@ static int slate_application_update (
 }
 
 //------------------------------------------------------------------------------
-int slate_create_application (
-  slate_application_info_t const *      pCreateInfo,
-  slate_application_t **                pApplication
+int qcurses_create_application (
+  qcurses_application_info_t const *    pCreateInfo,
+  qcurses_application_t **              pApplication
 ) {
   int err;
-  slate_widget_config_t widgetConfig;
-  slate_application_t * application;
+  qcurses_widget_config_t widgetConfig;
+  qcurses_application_t * application;
 
   // Configure the application as a widget for ease of use.
   widgetConfig.pAllocator = pCreateInfo->pAllocator;
-  widgetConfig.widgetSize = sizeof(slate_application_t) + sizeof(struct SLATE_PIMPL_NAME(slate_application_t));
-  widgetConfig.pfnDestroy = (slate_widget_destroy_pfn)&slate_destroy_application;
-  widgetConfig.pfnRecalculate = (slate_widget_recalc_pfn)&slate_application_recalculate;
-  widgetConfig.pfnPaint = (slate_widget_paint_pfn)&slate_application_paint;
+  widgetConfig.widgetSize = sizeof(qcurses_application_t) + sizeof(struct QCURSES_PIMPL_NAME(qcurses_application_t));
+  widgetConfig.pfnDestroy = (qcurses_widget_destroy_pfn)&qcurses_destroy_application;
+  widgetConfig.pfnRecalculate = (qcurses_widget_recalc_pfn)&qcurses_application_recalculate;
+  widgetConfig.pfnPaint = (qcurses_widget_paint_pfn)&qcurses_application_paint;
 
   // Allocate the terminal UI application.
-  err = slate_create_widget(
+  err = qcurses_create_widget(
     &widgetConfig,
     &application
   );
@@ -352,7 +350,7 @@ int slate_create_application (
   }
 
   // Grab the application private implementation pointer.
-  P(application) = (struct SLATE_PIMPL_NAME(slate_application_t)*)&application[1];
+  P(application) = (struct QCURSES_PIMPL_NAME(qcurses_application_t)*)&application[1];
 
   // Return the application to the caller.
   *pApplication = application;
@@ -360,16 +358,16 @@ int slate_create_application (
 }
 
 //------------------------------------------------------------------------------
-void slate_destroy_application (
-  slate_application_t *                 pApplication
+void qcurses_destroy_application (
+  qcurses_application_t *               pApplication
 ) {
   // TODO: Destroy application properly.
   (void)pApplication;
 }
 
 //------------------------------------------------------------------------------
-static int slate_application_start (
-  slate_application_t *                 pApplication
+static int qcurses_application_start (
+  qcurses_application_t *               pApplication
 ) {
   int err;
 
@@ -401,8 +399,8 @@ static int slate_application_start (
 }
 
 //------------------------------------------------------------------------------
-static int slate_application_end (
-  slate_application_t *                 pApplication
+static int qcurses_application_end (
+  qcurses_application_t *               pApplication
 ) {
   int err;
   err = endwin();
@@ -413,54 +411,54 @@ static int slate_application_end (
 }
 
 //------------------------------------------------------------------------------
-int slate_application_run (
-  slate_application_t *                 pApplication
+int qcurses_application_run (
+  qcurses_application_t *               pApplication
 ) {
   int err;
 
-  err = slate_application_start(pApplication);
+  err = qcurses_application_start(pApplication);
   if (err) {
     return err;
   }
 
   // Grab the terminal sizes without issuing a resize event.
-  err = slate_application_update_resize(pApplication);
+  err = qcurses_application_update_resize(pApplication);
   if (err) {
     return err;
   }
 
   do {
-    err = slate_application_update(pApplication);
+    err = qcurses_application_update(pApplication);
   } while (!err && !P(pApplication)->isQuitting);
 
-  (void)slate_application_end(pApplication);
+  (void)qcurses_application_end(pApplication);
 
   return err;
 }
 
 //------------------------------------------------------------------------------
-int slate_application_quit (
-  slate_application_t *                 pApplication
+int qcurses_application_quit (
+  qcurses_application_t *               pApplication
 ) {
-  P(pApplication)->isQuitting = SLATE_TRUE;
+  P(pApplication)->isQuitting = QCURSES_TRUE;
   return 0;
 }
 
 //------------------------------------------------------------------------------
-int __slate_application_set_main_widget (
-  slate_application_t *                 pApplication,
-  slate_widget_t *                      pWidget
+int __qcurses_application_set_main_widget (
+  qcurses_application_t *               pApplication,
+  qcurses_widget_t *                    pWidget
 ) {
   // TODO: What to do if another widget is disconnected?
-  pWidget->pParent = (slate_widget_t *)pApplication;
+  pWidget->pParent = (qcurses_widget_t *)pApplication;
   P(pApplication)->pMainWidget = pWidget;
   return 0;
 }
 
 //------------------------------------------------------------------------------
-int slate_application_set_status_bar (
-  slate_application_t *                 pApplication,
-  slate_status_bar_t *                  pStatusBar
+int qcurses_application_set_status_bar (
+  qcurses_application_t *               pApplication,
+  qcurses_status_bar_t *                pStatusBar
 ) {
   // TODO: Fix.
   //pStatusBar->widget.pParent = &pApplication->widget;

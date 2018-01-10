@@ -12,13 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *------------------------------------------------------------------------------
- * Slate Terminal UI Include Header
  ******************************************************************************/
-#ifndef   SLATE_LABEL_H
-#define   SLATE_LABEL_H
+#ifndef   QCURSES_LABEL_H
+#define   QCURSES_LABEL_H
 
-#include "slate.h"
+#include "qcurses.h"
 #include "widget.h"
 
 #ifdef    __cplusplus
@@ -26,60 +24,60 @@ extern "C" {
 #endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
-// Definition
+// Label Definition
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO: margin, indent, wordwrap mode (slate_wrap_t?).
+// TODO: margin, indent, wordwrap mode (qcurses_wrap_t?).
 //------------------------------------------------------------------------------
-SLATE_WIDGET_BEGIN(slate_label_t, slate_widget_t)
+QCURSES_WIDGET_BEGIN(qcurses_label_t, qcurses_widget_t)
   // Intentionally Empty
-SLATE_WIDGET_END
+QCURSES_WIDGET_END
 
 ////////////////////////////////////////////////////////////////////////////////
-// Slate API
+// Label Functions
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-int slate_create_label (
-  slate_alloc_t const *                 pAllocator,
-  slate_label_t **                      pLabel
+int qcurses_create_label (
+  qcurses_alloc_t const *               pAllocator,
+  qcurses_label_t **                    pLabel
 );
 
 //------------------------------------------------------------------------------
-void slate_destroy_label (
-  slate_label_t *                       pLabel
+void qcurses_destroy_label (
+  qcurses_label_t *                     pLabel
 );
 
 //------------------------------------------------------------------------------
-int slate_label_set_align (
-  slate_label_t *                       pLabel,
-  slate_align_t                         alignment
+int qcurses_label_set_align (
+  qcurses_label_t *                     pLabel,
+  qcurses_align_t                       alignment
 );
 
 //------------------------------------------------------------------------------
-slate_align_t slate_label_get_align (
-  slate_label_t *                       pLabel
+qcurses_align_t qcurses_label_get_align (
+  qcurses_label_t *                     pLabel
 );
 
 //------------------------------------------------------------------------------
-int slate_label_set_text (
-  slate_label_t *                       pLabel,
+int qcurses_label_set_text (
+  qcurses_label_t *                     pLabel,
   char const *                          text
 );
 
 //------------------------------------------------------------------------------
-int slate_label_set_text_n (
-  slate_label_t *                       pLabel,
+int qcurses_label_set_text_n (
+  qcurses_label_t *                     pLabel,
   char const *                          text,
   size_t                                n
 );
 
 //------------------------------------------------------------------------------
-#define slate_label_set_text_k(pLabel, text)                                    \
-  slate_label_set_text_n(pLabel, text, sizeof(text) - 1)
+#define qcurses_label_set_text_k(pLabel, text)                                  \
+  qcurses_label_set_text_n(pLabel, text, sizeof(text) - 1)
 
 #ifdef    __cplusplus
 }
 #endif // __cplusplus
 
-#endif // SLATE_LABEL_H
+#endif // QCURSES_LABEL_H

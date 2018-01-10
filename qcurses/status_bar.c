@@ -12,47 +12,46 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *------------------------------------------------------------------------------
- * Slate Terminal UI Source
  ******************************************************************************/
 
-#include "slate.h"
-#include <errno.h>
-#include <unistd.h>
-#include <string.h>
-#include <ncurses.h>
+#include "status_bar.h"
 
 #ifdef    __cplusplus
 extern "C" {
 #endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
-// Slate Generic Functions
+// Status Bar Functions
 ////////////////////////////////////////////////////////////////////////////////
-// TODO: For now, have an allocator abstraction layer, but don't implement the allocators.
-//       Gotta figure out how to better utilize a pass-through for LT3 first.
 
-void * slate_allocate (
-  slate_alloc_t const *                 pAllocator,
-  size_t                                n,
-  size_t                                align
+//------------------------------------------------------------------------------
+static int qcurses_status_bar_recalculate (
+  qcurses_status_bar_t *                pStatusBar,
+  qcurses_bounds_t const *              pBounds
 ) {
-  return aligned_alloc(align, n);
+  (void)pStatusBar;
+  (void)pBounds;
+  return ENOTSUP;
 }
 
-void * slate_reallocate (
-  slate_alloc_t const *                 pAllocator,
-  void *                                ptr,
-  size_t                                n
+//------------------------------------------------------------------------------
+static int qcurses_status_bar_paint (
+  qcurses_status_bar_t *                pStatusBar,
+  qcurses_region_t const *              pRegion
 ) {
-  return realloc(ptr, n);
+  (void)pStatusBar;
+  (void)pRegion;
+  return ENOTSUP;
 }
 
-void slate_free (
-  slate_alloc_t const *                 pAllocator,
-  void *                                ptr
+//------------------------------------------------------------------------------
+int qcurses_create_status_bar (
+  qcurses_alloc_t const *               pAllocator,
+  qcurses_status_bar_t **               pStatusBar
 ) {
-  free(ptr);
+  (void)pAllocator;
+  (void)pStatusBar;
+  return ENOTSUP;
 }
 
 #ifdef    __cplusplus

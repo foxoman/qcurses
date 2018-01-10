@@ -12,13 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *------------------------------------------------------------------------------
- * Slate Terminal UI Include Header
  ******************************************************************************/
-#ifndef   SLATE_APPLICATION_H
-#define   SLATE_APPLICATION_H
+#ifndef   QCURSES_APPLICATION_H
+#define   QCURSES_APPLICATION_H
 
-#include "slate.h"
+#include "qcurses.h"
 #include "widget.h"
 #include "menu_bar.h"
 #include "status_bar.h"
@@ -28,12 +26,12 @@ extern "C" {
 #endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
-// Structures
+// Application Structures
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-struct slate_application_info_t {
-  slate_alloc_t const *                 pAllocator;
+struct qcurses_application_info_t {
+  qcurses_alloc_t const *               pAllocator;
   char const *                          pApplicationName;
   char const *                          pDescription;
   char const *                          pVersion;
@@ -41,84 +39,84 @@ struct slate_application_info_t {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// Definition
+// Application Definition
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-SLATE_WIDGET_BEGIN(slate_application_t, slate_widget_t)
-  SLATE_WIDGET_SIGNALS(
-    SLATE_SIGNAL(onKey,                   slate_keycode_t code, int value);
-    SLATE_SIGNAL(onResize,                slate_bounds_t const *);
+QCURSES_WIDGET_BEGIN(qcurses_application_t, qcurses_widget_t)
+  QCURSES_WIDGET_SIGNALS(
+    QCURSES_SIGNAL(onKey,               qcurses_keycode_t code, int value);
+    QCURSES_SIGNAL(onResize,            qcurses_bounds_t const *);
   )
-SLATE_WIDGET_END
+QCURSES_WIDGET_END
 
 ////////////////////////////////////////////////////////////////////////////////
-// Functions
+// Application Functions
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-int slate_create_application (
-  slate_application_info_t const *      pCreateInfo,
-  slate_application_t **                pApplication
+int qcurses_create_application (
+  qcurses_application_info_t const *    pCreateInfo,
+  qcurses_application_t **              pApplication
 );
 
 //------------------------------------------------------------------------------
-void slate_destroy_application (
-  slate_application_t *                 pApplication
+void qcurses_destroy_application (
+  qcurses_application_t *               pApplication
 );
 
 //------------------------------------------------------------------------------
-slate_widget_t * slate_application_get_main_widget (
-  slate_application_t *                 pApplication
+qcurses_widget_t * qcurses_application_get_main_widget (
+  qcurses_application_t *               pApplication
 );
 
 //------------------------------------------------------------------------------
-int __slate_application_set_main_widget (
-  slate_application_t *                 pApplication,
-  slate_widget_t *                      pWidget
+int __qcurses_application_set_main_widget (
+  qcurses_application_t *               pApplication,
+  qcurses_widget_t *                    pWidget
 );
 
 //------------------------------------------------------------------------------
-#define slate_application_set_main_widget(pApplication, pWidget)                \
-  __slate_application_set_main_widget(                                          \
+#define qcurses_application_set_main_widget(pApplication, pWidget)              \
+  __qcurses_application_set_main_widget(                                        \
     pApplication,                                                               \
-    (slate_widget_t *)pWidget                                                   \
+    (qcurses_widget_t *)pWidget                                                 \
   )
 
 //------------------------------------------------------------------------------
-slate_menu_bar_t * slate_application_get_menu_bar (
-  slate_application_t *                 pApplication
+qcurses_menu_bar_t * qcurses_application_get_menu_bar (
+  qcurses_application_t *               pApplication
 );
 
 //------------------------------------------------------------------------------
-int slate_application_set_menu_bar (
-  slate_application_t *                 pApplication,
-  slate_menu_bar_t *                    pMenuBar
+int qcurses_application_set_menu_bar (
+  qcurses_application_t *               pApplication,
+  qcurses_menu_bar_t *                  pMenuBar
 );
 
 //------------------------------------------------------------------------------
-slate_status_bar_t * slate_application_get_status_bar (
-  slate_application_t *                 pApplication
+qcurses_status_bar_t * qcurses_application_get_status_bar (
+  qcurses_application_t *               pApplication
 );
 
 //------------------------------------------------------------------------------
-int slate_application_set_status_bar (
-  slate_application_t *                 pApplication,
-  slate_status_bar_t *                  pStatusBar
+int qcurses_application_set_status_bar (
+  qcurses_application_t *               pApplication,
+  qcurses_status_bar_t *                pStatusBar
 );
 
 //------------------------------------------------------------------------------
-int slate_application_run (
-  slate_application_t *                 pApplication
+int qcurses_application_run (
+  qcurses_application_t *               pApplication
 );
 
 //------------------------------------------------------------------------------
-int slate_application_quit (
-  slate_application_t *                 pApplication
+int qcurses_application_quit (
+  qcurses_application_t *               pApplication
 );
 
 #ifdef    __cplusplus
 }
 #endif // __cplusplus
 
-#endif // SLATE_APPLICATION_H
+#endif // QCURSES_APPLICATION_H

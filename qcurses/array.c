@@ -12,8 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *------------------------------------------------------------------------------
- * Slate Terminal UI Source
  ******************************************************************************/
 
 #include "array.h"
@@ -24,13 +22,13 @@ extern "C" {
 #endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
-// Slate Public Functions
+// Array Functions
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-int __slate_array_init  (
-  slate_alloc_t const *                 pAllocator,
-  slate_array_t *                       pArray,
+int __qcurses_array_init  (
+  qcurses_alloc_t const *               pAllocator,
+  qcurses_array_t *                     pArray,
   size_t                                elementSize,
   uint32_t                              initialCapacity
 ) {
@@ -38,28 +36,28 @@ int __slate_array_init  (
   pArray->count = 0;
   pArray->capacity = 0;
   if (initialCapacity != 0) {
-    return __slate_array_resize(pAllocator, pArray, elementSize, initialCapacity);
+    return __qcurses_array_resize(pAllocator, pArray, elementSize, initialCapacity);
   }
   return 0;
 }
 
 //------------------------------------------------------------------------------
-void __slate_array_deinit (
-  slate_alloc_t const *                 pAllocator,
-  slate_array_t *                       pArray
+void __qcurses_array_deinit (
+  qcurses_alloc_t const *               pAllocator,
+  qcurses_array_t *                     pArray
 ) {
-  slate_free(pAllocator, pArray->pData);
+  qcurses_free(pAllocator, pArray->pData);
 }
 
 //------------------------------------------------------------------------------
-int __slate_array_resize (
-  slate_alloc_t const *                 pAllocator,
-  slate_array_t *                       pArray,
+int __qcurses_array_resize (
+  qcurses_alloc_t const *               pAllocator,
+  qcurses_array_t *                     pArray,
   size_t                                elementSize,
   uint32_t                              capacity
 ) {
   void * ptr;
-  ptr = slate_reallocate(pAllocator, pArray->pData, elementSize * capacity);
+  ptr = qcurses_reallocate(pAllocator, pArray->pData, elementSize * capacity);
   if (!ptr) {
     return ENOMEM;
   }
@@ -69,9 +67,9 @@ int __slate_array_resize (
 }
 
 //------------------------------------------------------------------------------
-int __slate_array_grow (
-  slate_alloc_t const *                 pAllocator,
-  slate_array_t *                       pArray,
+int __qcurses_array_grow (
+  qcurses_alloc_t const *               pAllocator,
+  qcurses_array_t *                     pArray,
   uint32_t                              elementSize
 ) {
   uint32_t newCapacity;
@@ -90,19 +88,19 @@ int __slate_array_grow (
     }
   }
 
-  return __slate_array_resize(pAllocator, pArray, elementSize, newCapacity);
+  return __qcurses_array_resize(pAllocator, pArray, elementSize, newCapacity);
 }
 
 //------------------------------------------------------------------------------
-int __slate_array_push (
-  slate_alloc_t const *                 pAllocator,
-  slate_array_t *                       pArray,
+int __qcurses_array_push (
+  qcurses_alloc_t const *               pAllocator,
+  qcurses_array_t *                     pArray,
   uint32_t                              elementSize,
   void const *                          pData
 ) {
   int err;
-  if (slate_array_full(pArray)) {
-    err = __slate_array_grow(pAllocator, pArray, elementSize);
+  if (qcurses_array_full(pArray)) {
+    err = __qcurses_array_grow(pAllocator, pArray, elementSize);
     if (err) {
       return err;
     }

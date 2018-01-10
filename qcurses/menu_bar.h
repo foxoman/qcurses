@@ -12,13 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *------------------------------------------------------------------------------
- * Slate Terminal UI Include Header
  ******************************************************************************/
-#ifndef   SLATE_MENU_BAR_H
-#define   SLATE_MENU_BAR_H
+#ifndef   QCURSES_MENU_BAR_H
+#define   QCURSES_MENU_BAR_H
 
-#include "slate.h"
+#include "qcurses.h"
 #include "widget.h"
 
 #ifdef    __cplusplus
@@ -26,16 +24,16 @@ extern "C" {
 #endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
-// Definition
+// Menu Bar Definition
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-SLATE_WIDGET_BEGIN(slate_menu_bar_t, slate_widget_parent_t)
+QCURSES_WIDGET_BEGIN(qcurses_menu_bar_t, qcurses_widget_parent_t)
   // Intentionally Empty
-SLATE_WIDGET_END
+QCURSES_WIDGET_END
 
 #ifdef    __cplusplus
 }
 #endif // __cplusplus
 
-#endif // SLATE_MENU_BAR_H
+#endif // QCURSES_MENU_BAR_H

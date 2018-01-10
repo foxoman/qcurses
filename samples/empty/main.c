@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *------------------------------------------------------------------------------
- * Sample Slate application with minimal UI (status bar and main label).
+ * QCurses application with minimal UI (status bar and main label).
  ******************************************************************************/
 
-#include <slate/slate.h>
-#include <slate/application.h>
+#include <qcurses/qcurses.h>
+#include <qcurses/application.h>
 #include <string.h>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -29,24 +29,24 @@
 #define APPLICATION_VERSION     "v1.0"
 #define APPLICATION_DESCRIPTION "A minimal application using no widgets."
 
-#define SLATE_CHECK(s) do { int err = s; if (err) return err; } while (0)
+#define QCURSES_CHECK(s) do { int err = s; if (err) return err; } while (0)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Application Callbacks
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-SLATE_SLOT(
+QCURSES_SLOT(
   application_quit,
-  slate_application_t *                 pThis,
-  slate_keycode_t                       code,
+  qcurses_application_t *               pThis,
+  qcurses_keycode_t                     code,
   int                                   value
 ) {
   (void)value;
 
   // If the user presses "Q", we should prepare to quit.
-  if (code == SLATE_KEYCODE_Q) {
-    return slate_application_quit(pThis);
+  if (code == QCURSES_KEYCODE_Q) {
+    return qcurses_application_quit(pThis);
   }
 
   return 0;
@@ -58,11 +58,11 @@ SLATE_SLOT(
 
 //------------------------------------------------------------------------------
 static int main_prepare_application (
-  slate_alloc_t const *                 pAllocator,
-  slate_application_t *                 pApplication
+  qcurses_alloc_t const *               pAllocator,
+  qcurses_application_t *               pApplication
 ) {
   (void)pAllocator;
-  SLATE_CHECK(slate_widget_connect(pApplication, onKey, pApplication, application_quit));
+  QCURSES_CHECK(qcurses_widget_connect(pApplication, onKey, pApplication, application_quit));
   return 0;
 }
 
@@ -72,10 +72,10 @@ static int main_prepare_application (
 
 //------------------------------------------------------------------------------
 int main (int argc, char const * argv[]) {
-  slate_application_t* app;
+  qcurses_application_t* app;
 
   // Prepare the application for initialization.
-  slate_application_info_t appInfo;
+  qcurses_application_info_t appInfo;
   memset(&appInfo, 0, sizeof(appInfo));
   appInfo.pAllocator        = NULL;
   appInfo.pApplicationName  = APPLICATION_NAME;
@@ -84,10 +84,10 @@ int main (int argc, char const * argv[]) {
   appInfo.pDescription      = APPLICATION_DESCRIPTION;
 
   // Run the application by creating, preparing, running, and destroying.
-  SLATE_CHECK(slate_create_application(&appInfo, &app));
-  SLATE_CHECK(main_prepare_application(appInfo.pAllocator, app));
-  SLATE_CHECK(slate_application_run(app));
-  slate_destroy_application(app);
+  QCURSES_CHECK(qcurses_create_application(&appInfo, &app));
+  QCURSES_CHECK(main_prepare_application(appInfo.pAllocator, app));
+  QCURSES_CHECK(qcurses_application_run(app));
+  qcurses_destroy_application(app);
 
   return 0;
 }
