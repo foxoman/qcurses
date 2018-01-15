@@ -60,6 +60,9 @@ set(QCURSES_SRC
   qcurses/label.h
   qcurses/math.h
   qcurses/menu_bar.h
+  qcurses/painter.c
+  qcurses/painter.h
+  qcurses/painter.inl
   qcurses/qcurses.c
   qcurses/qcurses.h
   qcurses/status_bar.c

@@ -21,6 +21,11 @@
 extern "C" {
 #endif // __cplusplus
 
+typedef struct qcurses_widget_pimpl_t {
+  qcurses_widget_t                    baseWidget;
+  void *                              pImpl;
+} qcurses_widget_pimpl_t;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Widget Functions
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,33 +79,36 @@ int __qcurses_create_widget (
   qcurses_widget_config_t const *       pConfig,
   qcurses_widget_t **                   pResult
 ) {
-  qcurses_widget_t * pWidget;
+  size_t totalSize;
+  qcurses_widget_pimpl_t * widget;
 
   // Allocate the widget of the desired size.
-  pWidget = qcurses_allocate(
+  totalSize = pConfig->publicSize + pConfig->privateSize;
+  widget = (qcurses_widget_pimpl_t *)qcurses_allocate(
     pConfig->pAllocator,
-    pConfig->widgetSize,
+    totalSize,
     1
   );
-  if (!pWidget) {
+  if (!widget) {
     return ENOMEM;
   }
 
   // Zeroing out the data will set most of the widget to reasonable defaults.
-  memset(pWidget, 0, pConfig->widgetSize);
+  memset(widget, 0, totalSize);
 
   // Initialize the fields for the widget.
-  pWidget->pAllocator = pConfig->pAllocator;
-  pWidget->pParent = NULL;
-  pWidget->pfnDestroy = pConfig->pfnDestroy;
-  pWidget->pfnRecalculate = pConfig->pfnRecalculate;
-  pWidget->pfnPaint = pConfig->pfnPaint;
-  pWidget->minimumBounds = qcurses_bounds(0, 0);
-  pWidget->maximumBounds = qcurses_bounds(QCURSES_INFINITE, QCURSES_INFINITE);
-  pWidget->sizePolicy = QCURSES_POLICY_PREFERRED;
-  pWidget->internalState = QCURSES_STATE_DIRTY_BIT | QCURSES_STATE_VISIBLE_BIT;
+  widget->baseWidget.pAllocator = pConfig->pAllocator;
+  widget->baseWidget.pParent = NULL;
+  widget->baseWidget.pfnDestroy = pConfig->pfnDestroy;
+  widget->baseWidget.pfnRecalculate = pConfig->pfnRecalculate;
+  widget->baseWidget.pfnPaint = pConfig->pfnPaint;
+  widget->baseWidget.minimumBounds = qcurses_bounds(0, 0);
+  widget->baseWidget.maximumBounds = qcurses_bounds(QCURSES_INFINITE, QCURSES_INFINITE);
+  widget->baseWidget.sizePolicy = QCURSES_POLICY_PREFERRED;
+  widget->baseWidget.internalState = QCURSES_STATE_DIRTY_BIT | QCURSES_STATE_VISIBLE_BIT;
+  widget->pImpl = ((char *)widget) + pConfig->publicSize;
 
-  *pResult = pWidget;
+  *pResult = &widget->baseWidget;
   return 0;
 }
 
@@ -141,6 +149,7 @@ int __qcurses_widget_prepare_connection (
   }
 
   // Configure the connection
+  // TODO: warning: assignment from incompatible pointer type [-Wincompatible-pointer-types] (why?)
   pConnection->pSource = pSource;
   pConnection->pTarget = pTarget;
   pConnection->pSignal = pSignal;
@@ -155,7 +164,6 @@ int __qcurses_widget_prepare_connection (
 }
 
 //------------------------------------------------------------------------------
-// TODO: Do we need an iterative parent mark_dirty function?
 qcurses_state_t __qcurses_widget_mark_dirty (
   qcurses_widget_t *                    pWidget
 ) {

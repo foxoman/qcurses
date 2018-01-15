@@ -15,8 +15,11 @@
  ******************************************************************************/
 
 #include "application.h"
+#include "painter.inl"
 #include <ncurses.h>
 #include <ctype.h>
+#include <string.h>
+#include <stdio.h>
 
 #ifdef    __cplusplus
 extern "C" {
@@ -28,8 +31,15 @@ extern "C" {
 
 //------------------------------------------------------------------------------
 QCURSES_PIMPL_STRUCT(qcurses_application_t) {
-  WINDOW *                              mainWindow;
   qcurses_bool_t                        isQuitting;
+  qcurses_bool_t                        isResizing;
+  qcurses_bool_t                        hasMouse;
+  qcurses_bool_t                        hasColors;
+  qcurses_bool_t                        canChangeColors;
+  qcurses_coord_t                       mouseCoord;
+  mmask_t                               mouseEvents;
+  qcurses_mouse_t                       prevMouseState;
+  qcurses_painter_t                     painter;
   qcurses_widget_t *                    pMainWidget;
   qcurses_menu_bar_t *                  pMenuBar;       // TODO: Implement.
   qcurses_status_bar_t *                pStatusBar;     // TODO: Implement.
@@ -45,18 +55,48 @@ static int qcurses_application_update_input (
   qcurses_application_t *               pApplication
 ) {
   int value;
+  MEVENT mouseEvent;
   qcurses_keycode_t code;
 
   // TODO: Add the shift/Ctrl/Alt key modifiers - this could be useful to some.
   //       https://stackoverflow.com/questions/9750588/how-to-get-ctrl-shift-or-alt-with-getch-ncurses
-  value = getch();
+  value = wgetch(P(pApplication)->painter.pWindow);
   switch (value) {
 
     // Ignored input events
     case ERR:
     case KEY_EVENT:
+      return ENODATA;
     case KEY_MOUSE:
+      if (getmouse(&mouseEvent) == OK) {
+        qcurses_mouse_t mouseState = 0;
+        if (mouseEvent.bstate & BUTTON1_PRESSED) {
+          mouseState |= QCURSES_MOUSE_BUTTON1_PRESSED_BIT;
+          P(pApplication)->prevMouseState |= QCURSES_MOUSE_BUTTON1_PRESSED_BIT;
+        }
+        if (mouseEvent.bstate & BUTTON1_RELEASED) {
+          mouseState |= QCURSES_MOUSE_BUTTON1_RELEASED_BIT;
+          P(pApplication)->prevMouseState &= ~QCURSES_MOUSE_BUTTON1_PRESSED_BIT;
+        }
+        if (mouseEvent.bstate & BUTTON2_PRESSED) {
+          mouseState |= QCURSES_MOUSE_BUTTON2_PRESSED_BIT;
+          P(pApplication)->prevMouseState |= QCURSES_MOUSE_BUTTON2_PRESSED_BIT;
+        }
+        if (mouseEvent.bstate & BUTTON2_RELEASED) {
+          mouseState |= QCURSES_MOUSE_BUTTON2_RELEASED_BIT;
+          P(pApplication)->prevMouseState &= ~QCURSES_MOUSE_BUTTON2_PRESSED_BIT;
+        }
+        // TODO: Handle z (mousewheel).
+        P(pApplication)->mouseCoord = qcurses_coord(
+          (size_t)mouseEvent.x,
+          (size_t)mouseEvent.y
+        );
+        mouseState |= P(pApplication)->prevMouseState;
+        qcurses_widget_emit(pApplication, onMouse, &P(pApplication)->mouseCoord, mouseState);
+      }
+      return ENODATA;
     case KEY_RESIZE:
+      P(pApplication)->isResizing = QCURSES_TRUE;
       return ENODATA;
 
     // Standard ASCII range
@@ -156,33 +196,54 @@ static int qcurses_application_update_input (
 #undef QCURSES_CASE
 
 //------------------------------------------------------------------------------
-static int QCURSESCALL qcurses_application_recalculate (
-  qcurses_application_t *               pApplication,
+QCURSES_RECALC(
+  qcurses_application_recalculate,
+  qcurses_application_t *               pThis,
   qcurses_region_t const *              pRegion
 ) {
   int err;
+  char * pNewBuffer;
 
   // If the actual region has not changed, we can simply ignore the recalculate step.
   // This means a recalculate was requested, but that none of the math would change.
-  if (qcurses_region_equal(&W(pApplication)->outerRegion, pRegion)) {
+  if (qcurses_region_equal(&W(pThis)->outerRegion, pRegion)) {
     return 0;
+  }
+
+  // Update the application's painter instance.
+  P(pThis)->painter.boundary = pRegion->bounds;
+  if (P(pThis)->painter.maxBounds.columns < pRegion->bounds.columns) {
+    pNewBuffer = qcurses_reallocate(
+      W(pThis)->pAllocator,
+      P(pThis)->painter.pClearBrush,
+      pRegion->bounds.columns
+    );
+    if (!pNewBuffer) {
+      return ENOMEM;
+    }
+    memset(pNewBuffer, ' ', pRegion->bounds.columns);
+    P(pThis)->painter.pClearBrush = pNewBuffer;
+    P(pThis)->painter.maxBounds.columns = pRegion->bounds.columns;
+  }
+  if (P(pThis)->painter.maxBounds.rows < pRegion->bounds.rows) {
+    P(pThis)->painter.maxBounds.rows = pRegion->bounds.rows;
   }
 
   // Unlike other recalculate functions, application is special.
   // Application will ignore minimum/maximum size since it has no control over it.
   // Application also ignores size policies, instead always fixing to the size of the screen.
   // Because of this, in case the user erroneously changed these values, we should reset.
-  qcurses_widget_mark_state(pApplication, QCURSES_STATE_DIRTY_BIT);
-  W(pApplication)->sizePolicy     = QCURSES_POLICY_FIXED;
-  W(pApplication)->minimumBounds  = qcurses_bounds(0, 0);
-  W(pApplication)->maximumBounds  = qcurses_bounds(QCURSES_INFINITE, QCURSES_INFINITE);
-  W(pApplication)->contentBounds  = pRegion->bounds;
-  W(pApplication)->outerRegion    = *pRegion;
+  qcurses_widget_mark_state(pThis, QCURSES_STATE_DIRTY_BIT);
+  W(pThis)->sizePolicy     = QCURSES_POLICY_FIXED;
+  W(pThis)->minimumBounds  = qcurses_bounds(0, 0);
+  W(pThis)->maximumBounds  = qcurses_bounds(QCURSES_INFINITE, QCURSES_INFINITE);
+  W(pThis)->contentBounds  = pRegion->bounds;
+  W(pThis)->outerRegion    = *pRegion;
 
   // The central widget should fill the remaining space that menu/status aren't filling.
   // TODO: Right now, menu_bar and status_bar aren't implemented - so same as pRegion.
-  if (qcurses_widget_check(P(pApplication)->pMainWidget)) {
-    err = qcurses_widget_recalculate(P(pApplication)->pMainWidget, pRegion);
+  if (qcurses_widget_check(P(pThis)->pMainWidget)) {
+    err = qcurses_widget_recalculate(P(pThis)->pMainWidget, pRegion);
     if (err) {
       return err;
     }
@@ -192,24 +253,22 @@ static int QCURSESCALL qcurses_application_recalculate (
 }
 
 //------------------------------------------------------------------------------
-static int qcurses_application_paint (
-  qcurses_application_t *               pApplication,
-  qcurses_region_t const *              pRegion
+QCURSES_PAINTER(
+  qcurses_application_paint,
+  qcurses_application_t *               pThis,
+  qcurses_painter_t *                   pPainter
 ) {
   int err;
 
   // Paint the central widget with the remaining region of the terminal.
-  // TODO: Why do we store the painterRegion in each widget if we are just going to pass it in again?
-  //       Is there even a need for a recalculate step that is separate from painting?
-  //       Should take some time to seriously consider this aspect of the design, because it doesn't make sense.
-  if (qcurses_widget_check(P(pApplication)->pMainWidget)) {
-    err = qcurses_widget_paint(P(pApplication)->pMainWidget, pRegion);
+  if (qcurses_widget_check(P(pThis)->pMainWidget)) {
+    err = qcurses_widget_paint(P(pThis)->pMainWidget, pPainter);
     if (err) {
       return err;
     }
   }
 
-  qcurses_widget_unmark_dirty(pApplication);
+  qcurses_widget_unmark_dirty(pThis);
   return 0;
 }
 
@@ -232,16 +291,6 @@ static int qcurses_application_update_resize (
   resize.coord.row      = 0;
   resize.bounds.columns = (size_t)x;
   resize.bounds.rows    = (size_t)y;
-
-  // If the screen bounds is less than the minimum allowed,
-  // we should first restrict the bounds of the resize event.
-  // TODO: Is this needed? We just throw this data away in recalc anyways...
-  if (resize.bounds.columns < W(pApplication)->minimumBounds.columns) {
-    resize.bounds.columns = W(pApplication)->minimumBounds.columns;
-  }
-  if (resize.bounds.rows < W(pApplication)->minimumBounds.rows) {
-    resize.bounds.rows = W(pApplication)->minimumBounds.rows;
-  }
 
   // If they haven't changed from our previous x/y, nothing to do.
   qcurses_bool_t const screenSizeChanged = QCURSES_BOOL(
@@ -271,10 +320,7 @@ static int qcurses_application_update (
   int err;
 
   // Process all pending input (if available).
-  // TODO: Handle the mouse/resize events through input (more efficient).
-  // TODO: We can only use this nodelay pattern if we can inject custom events.
-  //       With more active UIs this may not be a possible pattern, may reconsider.
-  err = nodelay(P(pApplication)->mainWindow, TRUE);
+  err = nodelay(P(pApplication)->painter.pWindow, TRUE);
   if (err == ERR) {
     return EFAULT;
   }
@@ -291,14 +337,17 @@ static int qcurses_application_update (
   }
 
   // Process pending resize (if resized).
-  err = qcurses_application_update_resize(pApplication);
-  if (err) {
-    return err;
+  if (P(pApplication)->isResizing) {
+    P(pApplication)->isResizing = QCURSES_FALSE;
+    err = qcurses_application_update_resize(pApplication);
+    if (err) {
+      return err;
+    }
   }
 
   // Handle the visual update iff the application is marked dirty.
   if (qcurses_widget_is_dirty(pApplication)) {
-    err = qcurses_application_paint(pApplication, &W(pApplication)->outerRegion);
+    err = qcurses_application_paint(pApplication, &P(pApplication)->painter);
     if (err) {
       return err;
     }
@@ -312,7 +361,7 @@ static int qcurses_application_update (
 
   // Block for any kind of update which might cause output to change.
   // No big deal if we don't process all input - head logic will capture the rest.
-  err = nodelay(P(pApplication)->mainWindow, FALSE);
+  err = nodelay(P(pApplication)->painter.pWindow, FALSE);
   if (err == ERR) {
     return EFAULT;
   }
@@ -335,10 +384,11 @@ int qcurses_create_application (
 
   // Configure the application as a widget for ease of use.
   widgetConfig.pAllocator = pCreateInfo->pAllocator;
-  widgetConfig.widgetSize = sizeof(qcurses_application_t) + sizeof(struct QCURSES_PIMPL_NAME(qcurses_application_t));
+  widgetConfig.publicSize = sizeof(qcurses_application_t);
+  widgetConfig.privateSize = sizeof(QCURSES_PIMPL_STRUCT(qcurses_application_t));
   widgetConfig.pfnDestroy = (qcurses_widget_destroy_pfn)&qcurses_destroy_application;
-  widgetConfig.pfnRecalculate = (qcurses_widget_recalc_pfn)&qcurses_application_recalculate;
-  widgetConfig.pfnPaint = (qcurses_widget_paint_pfn)&qcurses_application_paint;
+  widgetConfig.pfnRecalculate = QCURSES_RECALC_PTR(qcurses_application_recalculate);
+  widgetConfig.pfnPaint = QCURSES_PAINTER_PTR(qcurses_application_paint);
 
   // Allocate the terminal UI application.
   err = qcurses_create_widget(
@@ -348,9 +398,6 @@ int qcurses_create_application (
   if (err) {
     return err;
   }
-
-  // Grab the application private implementation pointer.
-  P(application) = (struct QCURSES_PIMPL_NAME(qcurses_application_t)*)&application[1];
 
   // Return the application to the caller.
   *pApplication = application;
@@ -372,8 +419,8 @@ static int qcurses_application_start (
   int err;
 
   // Construct the main window
-  P(pApplication)->mainWindow = initscr();
-  if (!P(pApplication)->mainWindow) {
+  P(pApplication)->painter.pWindow = initscr();
+  if (!P(pApplication)->painter.pWindow) {
     return EFAULT;
   }
 
@@ -382,6 +429,32 @@ static int qcurses_application_start (
   if (err == ERR) {
     return EFAULT;
   }
+
+  // Attempt to configure the canvas to be used (has_mouse must come after mousemask).
+  // mouseinterval is used to force the default button state change to happen instantly.
+  // Some terminals need fed commands to know that they should send canvas position events.
+  // Note: See console_codes (4) for more information.
+  P(pApplication)->mouseEvents = mousemask(
+    ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION,
+    NULL
+  );
+  err = mouseinterval(0);
+  if (err == ERR) {
+    return EFAULT;
+  }
+  err = fputs("\033[?1003h\n", stdout);
+  if (err == EOF) {
+    return EFAULT;
+  }
+  P(pApplication)->hasMouse = has_mouse();
+
+  // If the console can perform coloured output, we should allow it.
+  err = start_color();
+  if (err == ERR) {
+    return EFAULT;
+  }
+  P(pApplication)->hasColors = has_colors();
+  P(pApplication)->canChangeColors = can_change_color();
 
   // Don't echo the keys as they're pressed to the screen.
   err = noecho();
@@ -403,6 +476,7 @@ static int qcurses_application_end (
   qcurses_application_t *               pApplication
 ) {
   int err;
+  fputs("\033[?1003l\n", stdout);
   err = endwin();
   if (err == ERR) {
     return EFAULT;

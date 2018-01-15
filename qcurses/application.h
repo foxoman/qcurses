@@ -47,6 +47,7 @@ QCURSES_WIDGET_BEGIN(qcurses_application_t, qcurses_widget_t)
   QCURSES_WIDGET_SIGNALS(
     QCURSES_SIGNAL(onKey,               qcurses_keycode_t code, int value);
     QCURSES_SIGNAL(onResize,            qcurses_bounds_t const *);
+    QCURSES_SIGNAL(onMouse,             qcurses_coord_t const *, qcurses_mouse_t buttons);
   )
 QCURSES_WIDGET_END
 

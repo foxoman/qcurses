@@ -18,7 +18,7 @@
 //       For now, we should just utilize LT3 for what we need and hack it in.
 #define LT3_EMBEDDED
 #include "label.h"
-#include <ncurses.h>
+#include "painter.h"
 #include <lt3/alloc.h>
 #include <lt3/string.h>
 
@@ -45,7 +45,8 @@ struct QCURSES_PIMPL_NAME(qcurses_label_t) {
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-static int qcurses_label_recalculate (
+QCURSES_RECALC(
+  qcurses_label_recalculate,
   qcurses_label_t *                     pLabel,
   qcurses_region_t const *              pRegion
 ) {
@@ -65,15 +66,13 @@ static int qcurses_label_recalculate (
   return 0;
 }
 
-// TODO: Gross, do something else for this... Maybe pass a painter around that has dynamic whitespace data?
-//       Figure this out after figuring out what to do about the recalculate/paint workflow.
-static char const __qcurses_whitespace[] = "                                                                                                                                                                                                                                                                                        ";
-
 //------------------------------------------------------------------------------
-static int qcurses_label_paint (
+QCURSES_PAINTER(
+  qcurses_label_paint,
   qcurses_label_t *                     pLabel,
-  qcurses_region_t const *              pRegion
+  qcurses_painter_t *                   pPainter
 ) {
+  int err;
   uint32_t idx;
   size_t lineLength;
   size_t printedLength;
@@ -83,6 +82,7 @@ static int qcurses_label_paint (
   size_t rowOffset;
   size_t rowCount;
   char const * pString;
+  qcurses_coord_t printCoord;
 
   // Calculate the inner content region (union of contentBounds and outerRegion)
   // Calculate the row/column offset based on content length and alignment.
@@ -93,8 +93,8 @@ static int qcurses_label_paint (
       P(pLabel)->maxLineLength
     );
     W(pLabel)->innerRegion.bounds = qcurses_bounds(
-      QCURSES_MIN(W(pLabel)->contentBounds.rows, pRegion->bounds.rows),
-      QCURSES_MIN(W(pLabel)->contentBounds.columns, pRegion->bounds.columns)
+      QCURSES_MIN(W(pLabel)->contentBounds.rows, W(pLabel)->outerRegion.bounds.rows),
+      QCURSES_MIN(W(pLabel)->contentBounds.columns, W(pLabel)->outerRegion.bounds.columns)
     );
     switch (P(pLabel)->alignment & QCURSES_ALIGN_HORIZONTAL_MASK) {
       case QCURSES_ALIGN_LEFT_BIT:
@@ -102,11 +102,11 @@ static int qcurses_label_paint (
         break;
 
       case QCURSES_ALIGN_CENTER_BIT:
-        W(pLabel)->innerRegion.coord.column = (pRegion->bounds.columns - W(pLabel)->innerRegion.bounds.columns) / 2;
+        W(pLabel)->innerRegion.coord.column = (W(pLabel)->outerRegion.bounds.columns - W(pLabel)->innerRegion.bounds.columns) / 2;
         break;
 
       case QCURSES_ALIGN_RIGHT_BIT:
-        W(pLabel)->innerRegion.coord.column = pRegion->bounds.columns - W(pLabel)->innerRegion.bounds.columns;
+        W(pLabel)->innerRegion.coord.column = W(pLabel)->outerRegion.bounds.columns - W(pLabel)->innerRegion.bounds.columns;
         break;
 
       default:
@@ -118,11 +118,11 @@ static int qcurses_label_paint (
         break;
 
       case QCURSES_ALIGN_MIDDLE_BIT:
-        W(pLabel)->innerRegion.coord.row = (pRegion->bounds.rows - W(pLabel)->innerRegion.bounds.rows) / 2;
+        W(pLabel)->innerRegion.coord.row = (W(pLabel)->outerRegion.bounds.rows - W(pLabel)->innerRegion.bounds.rows) / 2;
         break;
 
       case QCURSES_ALIGN_BOTTOM_BIT:
-        W(pLabel)->innerRegion.coord.row = pRegion->bounds.rows - W(pLabel)->innerRegion.bounds.rows;
+        W(pLabel)->innerRegion.coord.row = W(pLabel)->outerRegion.bounds.rows - W(pLabel)->innerRegion.bounds.rows;
         break;
 
       default:
@@ -131,14 +131,16 @@ static int qcurses_label_paint (
   }
 
   // Clear the outer region.
-  for (idx = 0; idx < pRegion->bounds.rows; ++idx) {
-    (void)move(pRegion->coord.row + idx, pRegion->coord.column);
-    (void)addnstr(__qcurses_whitespace, pRegion->bounds.columns);
+  err = qcurses_painter_clear(
+    pPainter,
+    &W(pLabel)->outerRegion
+  );
+  if (err) {
+    return err;
   }
 
   // Calculate the number of lines that will be cut off due to a small outerRegion.
   // We should utilize the vertical alignment mask to select where to cut content from.
-  // TODO: Actually implement this!
   switch (P(pLabel)->alignment & QCURSES_ALIGN_VERTICAL_MASK) {
     case QCURSES_ALIGN_TOP_BIT:
       rowOffset = 0;
@@ -177,7 +179,6 @@ static int qcurses_label_paint (
   }
 
   // Print each of the lines
-  // TODO: Check ncurses results?
   pString = lt3_string_cstr(&P(pLabel)->contents);
   for (idx = 0; idx < rowCount; ++idx) {
 
@@ -215,12 +216,28 @@ static int qcurses_label_paint (
           stringOffset = 0;
         }
         break;
+
+      default:
+        return EFAULT;
     }
+
 
     // Move to the ideal innerRegion offset and print the string.
     // Offset the pString pointer by the full lineLength (+1 for newline) for next line.
-    (void)move(W(pLabel)->innerRegion.coord.row + rowOffset + idx, W(pLabel)->innerRegion.coord.column + columnOffset);
-    (void)addnstr(pString + stringOffset, printedLength);
+    printCoord = qcurses_coord(
+      W(pLabel)->innerRegion.coord.column + columnOffset,
+      W(pLabel)->innerRegion.coord.row + rowOffset + idx
+    );
+    err = qcurses_painter_paint(
+      pPainter,
+      &printCoord,
+      pString + stringOffset,
+      printedLength
+    );
+    if (err) {
+      return err;
+    }
+
     pString += lineLength + 1;
   }
 
@@ -239,10 +256,11 @@ int qcurses_create_label (
 
   // Configure the application as a widget for ease of use.
   widgetConfig.pAllocator = pAllocator;
-  widgetConfig.widgetSize = sizeof(qcurses_label_t) + sizeof(struct QCURSES_PIMPL_NAME(qcurses_label_t));
+  widgetConfig.publicSize = sizeof(qcurses_label_t);
+  widgetConfig.privateSize = sizeof(QCURSES_PIMPL_STRUCT(qcurses_label_t));
   widgetConfig.pfnDestroy = (qcurses_widget_destroy_pfn)&qcurses_destroy_label;
-  widgetConfig.pfnRecalculate = (qcurses_widget_recalc_pfn)&qcurses_label_recalculate;
-  widgetConfig.pfnPaint = (qcurses_widget_paint_pfn)&qcurses_label_paint;
+  widgetConfig.pfnRecalculate = QCURSES_RECALC_PTR(qcurses_label_recalculate);
+  widgetConfig.pfnPaint = QCURSES_PAINTER_PTR(qcurses_label_paint);
 
   // Allocate the terminal UI application.
   err = qcurses_create_widget(
@@ -257,7 +275,6 @@ int qcurses_create_label (
   // TODO: For now, don't implement an allocator pass-through layer.
   //       Eventually we have to think of a creative way to bypass this issue.
   //       As I assume that we will have multiple allocation layers.
-  P(label) = (struct QCURSES_PIMPL_NAME(qcurses_label_t)*)&label[1];
   P(label)->alignment = QCURSES_ALIGN_MIDDLE_BIT | QCURSES_ALIGN_CENTER_BIT;
   lt3_alloc_host_init(&P(label)->allocator);
   lt3_string_init(&P(label)->contents);

@@ -27,8 +27,6 @@ extern "C" {
 // QCurses Defines
 ////////////////////////////////////////////////////////////////////////////////
 
-#define QCURSESCALL
-#define QCURSESPTR
 #define QCURSES_FALSE 0
 #define QCURSES_TRUE  1
 #define QCURSES_BOOL(stmt) ((stmt) ? QCURSES_TRUE : QCURSES_FALSE)
@@ -36,6 +34,8 @@ extern "C" {
 #define QCURSES_SIGNAL_MAX          UINT32_MAX
 #define QCURSES_PIMPL_NAME(name)    _##name##_impl_t
 #define QCURSES_SLOT_NAME(name)     _##name##_slot_t
+#define QCURSES_RECALC_NAME(name)   _##name##_recalc_t
+#define QCURSES_PAINTER_NAME(name)  _##name##_painter_t
 #define QCURSES_PIMPL_STRUCT(name)  struct QCURSES_PIMPL_NAME(name)
 #define QCURSES_MIN(a,b)            (((a) < (b)) ? (a) : (b))
 #define QCURSES_MAX(a,b)            (((a) > (b)) ? (a) : (b))
@@ -139,6 +139,18 @@ enum qcurses_keycode_t {
   QCURSES_KEYCODE_NUM_7,
   QCURSES_KEYCODE_NUM_8,
   QCURSES_KEYCODE_NUM_9,
+};
+
+//------------------------------------------------------------------------------
+#define QCURSES_MOUSE_STATE(n, state) (state << ((n - 1) * QCURSES_MOUSE_BUTTON_BITS))
+#define QCURSES_MOUSE_BUTTON_BITS 2
+#define QCURSES_MOUSE_BUTTON_PRESSED_BIT 0x01
+#define QCURSES_MOUSE_BUTTON_RELEASED_BIT 0x02
+enum qcurses_mouse_bits_t {
+  QCURSES_MOUSE_BUTTON1_PRESSED_BIT = QCURSES_MOUSE_STATE(1, QCURSES_MOUSE_BUTTON_PRESSED_BIT),
+  QCURSES_MOUSE_BUTTON1_RELEASED_BIT = QCURSES_MOUSE_STATE(1, QCURSES_MOUSE_BUTTON_RELEASED_BIT),
+  QCURSES_MOUSE_BUTTON2_PRESSED_BIT = QCURSES_MOUSE_STATE(2, QCURSES_MOUSE_BUTTON_PRESSED_BIT),
+  QCURSES_MOUSE_BUTTON2_RELEASED_BIT = QCURSES_MOUSE_STATE(2, QCURSES_MOUSE_BUTTON_RELEASED_BIT),
 };
 
 //------------------------------------------------------------------------------

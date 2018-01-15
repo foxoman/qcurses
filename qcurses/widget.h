@@ -35,9 +35,13 @@ extern "C" {
                                               struct name {                     \
                                                 baseType base;                  \
                                                 struct QCURSES_PIMPL_NAME(name) * pImpl;
-#define QCURSES_WIDGET_PUBLIC(defs)             struct { defs } impl;
-#define QCURSES_WIDGET_SIGNALS(defs)            struct { defs } signals;
 #define QCURSES_WIDGET_END                    };
+
+//------------------------------------------------------------------------------
+#define QCURSES_WIDGET_PUBLIC(defs)             struct { defs } impl;
+
+//------------------------------------------------------------------------------
+#define QCURSES_WIDGET_SIGNALS(defs)            struct { defs } signals;
 
 //------------------------------------------------------------------------------
 #define QCURSES_DEFINE_CONNECTION(slotDecl)                                     \
@@ -51,12 +55,22 @@ extern "C" {
 //------------------------------------------------------------------------------
 #define QCURSES_DEFINE_SIGNAL(params)                                           \
   QCURSES_DEFINE_ARRAY(                                                         \
-    QCURSES_DEFINE_CONNECTION(int (QCURSESPTR *pfnSlot) params) *                 \
+    QCURSES_DEFINE_CONNECTION(int (QCURSESPTR *pfnSlot) params) *               \
   )
 
 //------------------------------------------------------------------------------
 #define QCURSES_DEFINE_SLOT(name, params, qparams)                              \
-  typedef int (QCURSESPTR *QCURSES_SLOT_NAME(name)) params;                       \
+  typedef int (QCURSESPTR *QCURSES_SLOT_NAME(name)) params;                     \
+  int QCURSESCALL name qparams
+
+//------------------------------------------------------------------------------
+#define QCURSES_DEFINE_RECALC(name, params, qparams)                           \
+  typedef int (QCURSESPTR *QCURSES_RECALC_NAME(name)) params;                  \
+  int QCURSESCALL name qparams
+
+//------------------------------------------------------------------------------
+#define QCURSES_DEFINE_PAINTER(name, params, qparams)                           \
+  typedef int (QCURSESPTR *QCURSES_PAINTER_NAME(name)) params;                  \
   int QCURSESCALL name qparams
 
 //------------------------------------------------------------------------------
@@ -66,6 +80,14 @@ extern "C" {
 //------------------------------------------------------------------------------
 #define QCURSES_SLOT(name, this, ...) QCURSES_DEFINE_SLOT(name, (qcurses_widget_t *, __VA_ARGS__), (this, __VA_ARGS__))
 #define QCURSES_SLOT_VOID(name, this) QCURSES_DEFINE_SLOT(name, (qcurses_widget_t *), (this))
+
+//------------------------------------------------------------------------------
+#define QCURSES_RECALC(name, this, ...) QCURSES_DEFINE_RECALC(name, (qcurses_widget_t *, __VA_ARGS__), (this, __VA_ARGS__))
+#define QCURSES_RECALC_PTR(name) ((QCURSES_RECALC_NAME(name))&name)
+
+//------------------------------------------------------------------------------
+#define QCURSES_PAINTER(name, this, ...) QCURSES_DEFINE_PAINTER(name, (qcurses_widget_t *, __VA_ARGS__), (this, __VA_ARGS__))
+#define QCURSES_PAINTER_PTR(name) ((QCURSES_PAINTER_NAME(name))&name)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Widget Structures
@@ -78,12 +100,13 @@ typedef QCURSES_DEFINE_ARRAY(qcurses_connection_t *) qcurses_array_connection_t;
 
 typedef void (QCURSESPTR *qcurses_widget_destroy_pfn)(qcurses_widget_t *);
 typedef int (QCURSESPTR *qcurses_widget_recalc_pfn)(qcurses_widget_t *, qcurses_region_t const *);
-typedef int (QCURSESPTR *qcurses_widget_paint_pfn)(qcurses_widget_t *, qcurses_region_t const *);
+typedef int (QCURSESPTR *qcurses_widget_paint_pfn)(qcurses_widget_t *, qcurses_painter_t *);
 
 //------------------------------------------------------------------------------
 struct qcurses_widget_config_t {
   qcurses_alloc_t const *               pAllocator;
-  size_t                                widgetSize;
+  size_t                                publicSize;
+  size_t                                privateSize;
   qcurses_widget_destroy_pfn            pfnDestroy;
   qcurses_widget_recalc_pfn             pfnRecalculate;
   qcurses_widget_paint_pfn              pfnPaint;
@@ -158,16 +181,16 @@ static inline int QCURSESCALL __qcurses_widget_recalculate (
 //------------------------------------------------------------------------------
 static inline int QCURSESCALL __qcurses_widget_paint (
   qcurses_widget_t *                    pWidget,
-  qcurses_region_t const *              pRegion
+  qcurses_painter_t *                   pPainters
 ) {
-  return pWidget->pfnPaint(pWidget, pRegion);
+  return pWidget->pfnPaint(pWidget, pPainters);
 }
 
 //------------------------------------------------------------------------------
-#define qcurses_widget_paint(pWidget, pRegion)                                  \
+#define qcurses_widget_paint(pWidget, pPainter)                                 \
   __qcurses_widget_paint(                                                       \
     (qcurses_widget_t *)(pWidget),                                              \
-    pRegion                                                                     \
+    pPainter                                                                    \
   )
 
 //------------------------------------------------------------------------------

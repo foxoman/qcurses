@@ -27,6 +27,8 @@ extern "C" {
 // QCurses Defines
 ////////////////////////////////////////////////////////////////////////////////
 
+#define QCURSESCALL
+#define QCURSESPTR
 #define QCURSES_DECLARE_STRUCT(name)    typedef struct name name
 #define QCURSES_DECLARE_ENUM(name)      typedef enum name name
 #define QCURSES_DECLARE_FLAG_TYPE(name) typedef qcurses_flags_t name
@@ -51,15 +53,17 @@ QCURSES_DECLARE_ENUM(qcurses_keycode_t);
 // Flags
 QCURSES_DECLARE_FLAGS(qcurses_align_bits_t, qcurses_align_t);
 QCURSES_DECLARE_FLAGS(qcurses_modifier_bits_t, qcurses_modifier_t);
+QCURSES_DECLARE_FLAGS(qcurses_mouse_bits_t, qcurses_mouse_t);
 QCURSES_DECLARE_FLAGS(qcurses_policy_bits_t, qcurses_policy_t);
 QCURSES_DECLARE_FLAGS(qcurses_state_bits_t, qcurses_state_t);
 
 // Structs
 QCURSES_DECLARE_STRUCT(qcurses_alloc_t);
-QCURSES_DECLARE_STRUCT(qcurses_bounds_t);
 QCURSES_DECLARE_STRUCT(qcurses_application_t);
 QCURSES_DECLARE_STRUCT(qcurses_application_info_t);
+QCURSES_DECLARE_STRUCT(qcurses_bounds_t);
 QCURSES_DECLARE_STRUCT(qcurses_coord_t);
+QCURSES_DECLARE_STRUCT(qcurses_painter_t);
 QCURSES_DECLARE_STRUCT(qcurses_region_t);
 QCURSES_DECLARE_STRUCT(qcurses_slot_t);
 QCURSES_DECLARE_STRUCT(qcurses_widget_t);

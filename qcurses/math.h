@@ -17,6 +17,7 @@
 #define   QCURSES_MATH_H
 
 #include "fwdqcurses.h"
+#include <stdlib.h>
 
 #ifdef    __cplusplus
 extern "C" {
@@ -48,7 +49,7 @@ struct qcurses_region_t {
 // Math Functions
 ////////////////////////////////////////////////////////////////////////////////
 
-static inline qcurses_coord_t QCURSESCALL qcurses_coord(
+static inline qcurses_coord_t QCURSESCALL qcurses_coord (
   size_t                                x,
   size_t                                y
 ) {
@@ -58,14 +59,14 @@ static inline qcurses_coord_t QCURSESCALL qcurses_coord(
   return coord;
 }
 
-static inline int QCURSESCALL qcurses_coord_equal(
+static inline int QCURSESCALL qcurses_coord_equal (
   qcurses_coord_t const *               pLhs,
   qcurses_coord_t const *               pRhs
 ) {
   return (pLhs->column == pRhs->column && pLhs->row == pRhs->row);
 }
 
-static inline qcurses_bounds_t QCURSESCALL qcurses_bounds(
+static inline qcurses_bounds_t QCURSESCALL qcurses_bounds (
   size_t                                rows,
   size_t                                columns
 ) {
@@ -75,14 +76,24 @@ static inline qcurses_bounds_t QCURSESCALL qcurses_bounds(
   return bounds;
 }
 
-static inline int QCURSESCALL qcurses_bounds_equal(
+static inline int QCURSESCALL qcurses_bounds_equal (
   qcurses_bounds_t const *              pLhs,
   qcurses_bounds_t const *              pRhs
 ) {
   return (pLhs->columns == pRhs->columns && pLhs->rows == pRhs->rows);
 }
 
-static inline qcurses_region_t QCURSESCALL qcurses_region(
+static inline int QCURSESCALL qcurses_bounds_contains (
+  qcurses_bounds_t const *              pBounds,
+  qcurses_coord_t const *               pCoord
+) {
+  return (
+    pBounds->rows     > pCoord->row     &&
+    pBounds->columns  > pCoord->column
+  );
+}
+
+static inline qcurses_region_t QCURSESCALL qcurses_region (
   size_t                                x,
   size_t                                y,
   size_t                                rows,
@@ -94,7 +105,7 @@ static inline qcurses_region_t QCURSESCALL qcurses_region(
   return region;
 }
 
-static inline int QCURSESCALL qcurses_region_equal(
+static inline int QCURSESCALL qcurses_region_equal (
   qcurses_region_t const *              pLhs,
   qcurses_region_t const *              pRhs
 ) {
