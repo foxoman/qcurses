@@ -31,7 +31,12 @@
 #define APPLICATION_VERSION     "v0.1"
 #define APPLICATION_DESCRIPTION "A simple terminal-based paint application."
 
-#define CANVAS_DEFAULT_BRUSH '.'
+// TODO: Support wide-character output so that I can use UNICODE and extended characters. (req CMake 3.10+)
+static char const s_brushweights[] = " .oO0";
+#define CANVAS_MAX_VALUE (sizeof(s_brushweights) / sizeof(s_brushweights[0]) - 2)
+#define CANVAS_MIN_VALUE 0
+#define CANVAS_BRUSH_WEIGHT  1.00f
+#define CANVAS_ERASE_WEIGHT -1.00f
 
 #define QCURSES_CHECK(s) do { int err = s; if (err) return err; } while (0)
 
@@ -48,8 +53,11 @@ QCURSES_WIDGET_END
 
 //------------------------------------------------------------------------------
 QCURSES_PIMPL_STRUCT(canvas_widget_t) {
-  qcurses_coord_t                       dirtyCoord;
-  char                                  brush;
+  int                                   fullRefresh;
+  float                                 brushValue;
+  qcurses_coord_t                       currCoord;
+  qcurses_coord_t                       prevCoord;
+  float *                               pBuffer;
 };
 
 //------------------------------------------------------------------------------
@@ -58,12 +66,30 @@ QCURSES_RECALC(
   canvas_widget_t *                     pThis,
   qcurses_region_t const *              pRegion
 ) {
+  float * newBuffer;
+  size_t bufferSize;
 
   // Update the region information (no special region handling here).
-  // TODO: This is confusing to configure, there has to be an easier way than recalc.
-  W(pThis)->contentBounds = pRegion->bounds;
-  W(pThis)->innerRegion = *pRegion;
-  W(pThis)->outerRegion = *pRegion;
+  W(pThis)->contentBounds =  pRegion->bounds;
+  W(pThis)->innerRegion   = *pRegion;
+  W(pThis)->outerRegion   = *pRegion;
+
+  // Grow the internal buffer to handle the new buffer size.
+  bufferSize = sizeof(P(pThis)->pBuffer[0]) * pRegion->bounds.rows * pRegion->bounds.columns;
+  newBuffer = qcurses_reallocate(
+    W(pThis)->pAllocator,
+    P(pThis)->pBuffer,
+    bufferSize
+  );
+  if (!newBuffer) {
+    return ENOMEM;
+  }
+
+  // Initialize the new buffer size, and schedule a screen refresh.
+  // Note: Currently we don't preserve the buffer, so we can lose data here.
+  qcurses_widget_mark_dirty(pThis);
+  memset(newBuffer, 0, bufferSize);
+  P(pThis)->pBuffer = newBuffer;
 
   return 0;
 }
@@ -74,20 +100,34 @@ QCURSES_PAINTER(
   canvas_widget_t *                     pThis,
   qcurses_painter_t *                   pPainter
 ) {
+  int finalValue;
+  size_t idxOffset;
 
-  // If the dirty coordinate is outside of the valid bounds,
-  // then we aren't actually processing a valid dirty bit.
-  if (!qcurses_bounds_contains(&W(pThis)->contentBounds, &P(pThis)->dirtyCoord)) {
+  // If the dirty coordinate is the same as the previous coordinate
+  // then there is nothing to update (we don't update the same cell twice).
+  if (qcurses_coord_equal(&P(pThis)->prevCoord, &P(pThis)->currCoord)) {
     return 0;
   }
 
-  // Otherwise, we should paint the current brush value to the screen.
-  // TODO: In the future, we should have a local temporary buffer so we don't lose data on resize.
-  //       This will also allow us to "save" the buffer so that we can save our work.
+  // Calculate the index into the canvas buffer, and add the brush value.
+  // This value should be clamped to the min/max canvas value as well.
+  idxOffset  = W(pThis)->contentBounds.columns * P(pThis)->currCoord.row;
+  idxOffset += P(pThis)->currCoord.column;
+  P(pThis)->pBuffer[idxOffset] += P(pThis)->brushValue;
+  if (P(pThis)->pBuffer[idxOffset] > CANVAS_MAX_VALUE) {
+    P(pThis)->pBuffer[idxOffset] = CANVAS_MAX_VALUE;
+  }
+  if (P(pThis)->pBuffer[idxOffset] < CANVAS_MIN_VALUE) {
+    P(pThis)->pBuffer[idxOffset] = CANVAS_MIN_VALUE;
+  }
+
+  // Update the character on-screen which has been updated by the logic.
+  P(pThis)->prevCoord = P(pThis)->currCoord;
+  finalValue = (int)(P(pThis)->pBuffer[idxOffset]);
   return qcurses_painter_paint(
     pPainter,
-    &P(pThis)->dirtyCoord,
-    &P(pThis)->brush,
+    &P(pThis)->currCoord,
+    &s_brushweights[finalValue],
     1
   );
 }
@@ -119,28 +159,35 @@ QCURSES_SLOT(
 
 //------------------------------------------------------------------------------
 QCURSES_SLOT(
-  canvas_widget_brush,
-  canvas_widget_t *                     pThis,
-  qcurses_keycode_t                     code,
-  int                                   value
-) {
-  P(pThis)->brush = (char)value;
-  qcurses_widget_emit(pThis, setBrush, (char)value);
-  return 0;
-}
-
-//------------------------------------------------------------------------------
-QCURSES_SLOT(
   canvas_widget_click,
   canvas_widget_t *                     pThis,
   qcurses_coord_t const *               pCoord,
   qcurses_mouse_t                       buttonState
 ) {
-  if (buttonState & QCURSES_MOUSE_BUTTON1_PRESSED_BIT) {
-    P(pThis)->dirtyCoord = *pCoord;
+
+  // Brush:
+  if (buttonState & QCURSES_MOUSE_BUTTON_LEFT_PRESSED_BIT) {
+    P(pThis)->brushValue = CANVAS_BRUSH_WEIGHT;
+    P(pThis)->currCoord = *pCoord;
     qcurses_widget_mark_dirty(pThis);
   }
+
+  // Eraser:
+  if (buttonState & QCURSES_MOUSE_BUTTON_RIGHT_PRESSED_BIT) {
+    P(pThis)->brushValue = CANVAS_ERASE_WEIGHT;
+    P(pThis)->currCoord = *pCoord;
+    qcurses_widget_mark_dirty(pThis);
+  }
+
   return 0;
+}
+
+//------------------------------------------------------------------------------
+static void qcurses_destroy_canvas (
+  canvas_widget_t *                     canvas
+) {
+  free(P(canvas)->pBuffer);
+  qcurses_destroy_widget(canvas);
 }
 
 //------------------------------------------------------------------------------
@@ -153,12 +200,12 @@ static int create_canvas_widget (
   canvas_widget_t * canvas;
 
   // Configure the application as a widget for ease of use.
-  widgetConfig.pAllocator = pAllocator;
-  widgetConfig.publicSize = sizeof(canvas_widget_t);
-  widgetConfig.privateSize = sizeof(QCURSES_PIMPL_STRUCT(canvas_widget_t));
-  widgetConfig.pfnDestroy = (qcurses_widget_destroy_pfn)&qcurses_destroy_label;
+  widgetConfig.pAllocator     = pAllocator;
+  widgetConfig.publicSize     = sizeof(canvas_widget_t);
+  widgetConfig.privateSize    = sizeof(QCURSES_PIMPL_STRUCT(canvas_widget_t));
+  widgetConfig.pfnDestroy     = QCURSES_DESTROY_PTR(qcurses_destroy_canvas);
   widgetConfig.pfnRecalculate = QCURSES_RECALC_PTR(canvas_widget_recalculate);
-  widgetConfig.pfnPaint = QCURSES_PAINTER_PTR(canvas_widget_paint);
+  widgetConfig.pfnPaint       = QCURSES_PAINTER_PTR(canvas_widget_paint);
 
   // Allocate the terminal UI application.
   err = qcurses_create_widget(
@@ -168,12 +215,6 @@ static int create_canvas_widget (
   if (err) {
     return err;
   }
-
-  // Configure the canvas defaults.
-  // Note: We chose an invalid coordinate for the first dirtyCoord to specify clean.
-  //       This is because we start out in a dirty state, but don't want to touch the canvas.
-  P(canvas)->dirtyCoord = qcurses_coord(QCURSES_INFINITE, QCURSES_INFINITE);
-  P(canvas)->brush = CANVAS_DEFAULT_BRUSH;
 
   // Return the application to the caller.
   *pCanvasWidget = canvas;
@@ -192,7 +233,6 @@ static int main_prepare_main_widget (
   canvas_widget_t * canvas;
   QCURSES_CHECK(create_canvas_widget(pAllocator, &canvas));
   QCURSES_CHECK(qcurses_widget_connect(pApplication, onMouse, canvas, canvas_widget_click));
-  QCURSES_CHECK(qcurses_widget_connect(pApplication, onKey, canvas, canvas_widget_brush));
   QCURSES_CHECK(qcurses_application_set_main_widget(pApplication, canvas));
   return 0;
 }

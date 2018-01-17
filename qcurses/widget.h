@@ -48,7 +48,7 @@ extern "C" {
   struct {                                                                      \
     qcurses_widget_t * pSource;                                                 \
     qcurses_widget_t * pTarget;                                                 \
-    struct qcurses_signal_t * pSignal;                                          \
+    qcurses_signal_t * pSignal;                                                 \
     slotDecl;                                                                   \
   }
 
@@ -82,6 +82,9 @@ extern "C" {
 #define QCURSES_SLOT_VOID(name, this) QCURSES_DEFINE_SLOT(name, (qcurses_widget_t *), (this))
 
 //------------------------------------------------------------------------------
+#define QCURSES_DESTROY_PTR(name) ((qcurses_widget_destroy_pfn)&name)
+
+//------------------------------------------------------------------------------
 #define QCURSES_RECALC(name, this, ...) QCURSES_DEFINE_RECALC(name, (qcurses_widget_t *, __VA_ARGS__), (this, __VA_ARGS__))
 #define QCURSES_RECALC_PTR(name) ((QCURSES_RECALC_NAME(name))&name)
 
@@ -93,8 +96,9 @@ extern "C" {
 // Widget Structures
 ////////////////////////////////////////////////////////////////////////////////
 
+struct qcurses_connection_t;
+typedef QCURSES_DEFINE_ARRAY(struct qcurses_connection_t *) qcurses_signal_t;
 typedef QCURSES_DEFINE_CONNECTION(void const * pfnSlot) qcurses_connection_t;
-typedef QCURSES_DEFINE_ARRAY(qcurses_connection_t *) qcurses_signal_t;
 typedef QCURSES_DEFINE_ARRAY(qcurses_widget_t *)     qcurses_array_widget_t;
 typedef QCURSES_DEFINE_ARRAY(qcurses_connection_t *) qcurses_array_connection_t;
 

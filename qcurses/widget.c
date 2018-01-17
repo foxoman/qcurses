@@ -149,7 +149,6 @@ int __qcurses_widget_prepare_connection (
   }
 
   // Configure the connection
-  // TODO: warning: assignment from incompatible pointer type [-Wincompatible-pointer-types] (why?)
   pConnection->pSource = pSource;
   pConnection->pTarget = pTarget;
   pConnection->pSignal = pSignal;

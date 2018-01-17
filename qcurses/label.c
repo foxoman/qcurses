@@ -255,12 +255,12 @@ int qcurses_create_label (
   qcurses_label_t * label;
 
   // Configure the application as a widget for ease of use.
-  widgetConfig.pAllocator = pAllocator;
-  widgetConfig.publicSize = sizeof(qcurses_label_t);
-  widgetConfig.privateSize = sizeof(QCURSES_PIMPL_STRUCT(qcurses_label_t));
-  widgetConfig.pfnDestroy = (qcurses_widget_destroy_pfn)&qcurses_destroy_label;
+  widgetConfig.pAllocator     = pAllocator;
+  widgetConfig.publicSize     = sizeof(qcurses_label_t);
+  widgetConfig.privateSize    = sizeof(QCURSES_PIMPL_STRUCT(qcurses_label_t));
+  widgetConfig.pfnDestroy     = QCURSES_DESTROY_PTR(qcurses_destroy_label);
   widgetConfig.pfnRecalculate = QCURSES_RECALC_PTR(qcurses_label_recalculate);
-  widgetConfig.pfnPaint = QCURSES_PAINTER_PTR(qcurses_label_paint);
+  widgetConfig.pfnPaint       = QCURSES_PAINTER_PTR(qcurses_label_paint);
 
   // Allocate the terminal UI application.
   err = qcurses_create_widget(
