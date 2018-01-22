@@ -81,11 +81,18 @@ int __qcurses_create_widget (
 ) {
   size_t totalSize;
   qcurses_widget_pimpl_t * widget;
+  qcurses_alloc_t const * pAllocator;
+
+  // Ensure that we are setting a valid allocator.
+  pAllocator = pConfig->pAllocator;
+  if (!pAllocator) {
+    pAllocator = qcurses_default_allocator();
+  }
 
   // Allocate the widget of the desired size.
   totalSize = pConfig->publicSize + pConfig->privateSize;
-  widget = (qcurses_widget_pimpl_t *)qcurses_allocate(
-    pConfig->pAllocator,
+  widget = (qcurses_widget_pimpl_t *)qcurses_allocate_unsafe(
+    pAllocator,
     totalSize,
     1
   );
@@ -97,7 +104,7 @@ int __qcurses_create_widget (
   memset(widget, 0, totalSize);
 
   // Initialize the fields for the widget.
-  widget->baseWidget.pAllocator = pConfig->pAllocator;
+  widget->baseWidget.pAllocator = pAllocator;
   widget->baseWidget.pParent = NULL;
   widget->baseWidget.pfnDestroy = pConfig->pfnDestroy;
   widget->baseWidget.pfnRecalculate = pConfig->pfnRecalculate;

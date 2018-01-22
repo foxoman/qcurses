@@ -207,21 +207,41 @@ enum qcurses_align_bits_t {
 // QCurses Structures
 ////////////////////////////////////////////////////////////////////////////////
 
-typedef void* (QCURSESPTR *qcurses_alloc_pfn)(void * pData, size_t n, size_t align);
-typedef void* (QCURSESPTR *qcurses_realloc_pfn)(void * pData, void * ptr, size_t n);
-typedef void  (QCURSESPTR *qcurses_free_pfn)(void * pData, void * ptr);
+struct qcurses_alloc_t;
+typedef void* (QCURSESPTR *qcurses_alloc_pfn)(struct qcurses_alloc_t const * pData, size_t n, size_t align);
+typedef void* (QCURSESPTR *qcurses_realloc_pfn)(struct qcurses_alloc_t const * pData, void * ptr, size_t n);
+typedef void  (QCURSESPTR *qcurses_free_pfn)(struct qcurses_alloc_t const * pData, void * ptr);
 
 //------------------------------------------------------------------------------
 struct qcurses_alloc_t {
   qcurses_alloc_pfn                     pfnAllocate;
   qcurses_realloc_pfn                   pfnReallocate;
   qcurses_free_pfn                      pfnFree;
-  void *                                pUserData;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // QCurses Functions
 ////////////////////////////////////////////////////////////////////////////////
+
+//------------------------------------------------------------------------------
+void * qcurses_allocate_unsafe (
+  qcurses_alloc_t const *               pAllocator,
+  size_t                                n,
+  size_t                                align
+);
+
+//------------------------------------------------------------------------------
+void * qcurses_reallocate_unsafe (
+  qcurses_alloc_t const *               pAllocator,
+  void *                                ptr,
+  size_t                                n
+);
+
+//------------------------------------------------------------------------------
+void qcurses_free_unsafe (
+  qcurses_alloc_t const *               pAllocator,
+  void *                                ptr
+);
 
 //------------------------------------------------------------------------------
 void * qcurses_allocate (
@@ -242,6 +262,14 @@ void qcurses_free (
   qcurses_alloc_t const *               pAllocator,
   void *                                ptr
 );
+
+//------------------------------------------------------------------------------
+void qcurses_host_allocator_init (
+  qcurses_alloc_t *                     pAllocator
+);
+
+//------------------------------------------------------------------------------
+qcurses_alloc_t const * qcurses_default_allocator ();
 
 #ifdef    __cplusplus
 }

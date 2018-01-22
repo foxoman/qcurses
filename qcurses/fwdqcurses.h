@@ -49,6 +49,7 @@ typedef uint32_t  qcurses_flags_t;
 
 // Enums
 QCURSES_DECLARE_ENUM(qcurses_keycode_t);
+QCURSES_DECLARE_ENUM(qcurses_layout_format_t);
 
 // Flags
 QCURSES_DECLARE_FLAGS(qcurses_align_bits_t, qcurses_align_t);
@@ -63,6 +64,7 @@ QCURSES_DECLARE_STRUCT(qcurses_application_t);
 QCURSES_DECLARE_STRUCT(qcurses_application_info_t);
 QCURSES_DECLARE_STRUCT(qcurses_bounds_t);
 QCURSES_DECLARE_STRUCT(qcurses_coord_t);
+QCURSES_DECLARE_STRUCT(qcurses_layout_t);
 QCURSES_DECLARE_STRUCT(qcurses_painter_t);
 QCURSES_DECLARE_STRUCT(qcurses_region_t);
 QCURSES_DECLARE_STRUCT(qcurses_slot_t);

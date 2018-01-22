@@ -14,11 +14,9 @@
  * limitations under the License.
  ******************************************************************************/
 
-// TODO: LT3 integration is not great here, this should be re-thought a little.
-//       For now, we should just utilize LT3 for what we need and hack it in.
-#define LT3_EMBEDDED
 #include "label.h"
 #include "painter.h"
+#include "details/lt3alloc.h"
 #include <lt3/alloc.h>
 #include <lt3/string.h>
 
@@ -33,7 +31,7 @@ extern "C" {
 
 //------------------------------------------------------------------------------
 struct QCURSES_PIMPL_NAME(qcurses_label_t) {
-  lt3_alloc_host_t                      allocator;
+  qcurses_lt3alloc_t                    allocator;
   qcurses_align_t                       alignment;
   lt3_string_t                          contents;
   size_t                                maxLineLength;
@@ -60,7 +58,10 @@ QCURSES_RECALC(
   // TODO: Handle calculations for word wrapping, which can dynamically change the content size.
   //       For now, just assume no dynamic content size changes based on print region.
   qcurses_widget_mark_state(pLabel, QCURSES_STATE_DIRTY_BIT);
-  W(pLabel)->contentBounds  = qcurses_bounds(P(pLabel)->lines.count, P(pLabel)->maxLineLength);
+  W(pLabel)->contentBounds  = qcurses_bounds(
+    QCURSES_MIN(P(pLabel)->lines.count, pRegion->bounds.rows),
+    P(pLabel)->maxLineLength
+  );
   W(pLabel)->outerRegion    = *pRegion;
 
   return 0;
@@ -92,21 +93,22 @@ QCURSES_PAINTER(
       P(pLabel)->lines.count,
       P(pLabel)->maxLineLength
     );
+    W(pLabel)->innerRegion.coord = W(pLabel)->outerRegion.coord;
     W(pLabel)->innerRegion.bounds = qcurses_bounds(
       QCURSES_MIN(W(pLabel)->contentBounds.rows, W(pLabel)->outerRegion.bounds.rows),
       QCURSES_MIN(W(pLabel)->contentBounds.columns, W(pLabel)->outerRegion.bounds.columns)
     );
     switch (P(pLabel)->alignment & QCURSES_ALIGN_HORIZONTAL_MASK) {
       case QCURSES_ALIGN_LEFT_BIT:
-        W(pLabel)->innerRegion.coord.column = 0;
+        W(pLabel)->innerRegion.coord.column += 0;
         break;
 
       case QCURSES_ALIGN_CENTER_BIT:
-        W(pLabel)->innerRegion.coord.column = (W(pLabel)->outerRegion.bounds.columns - W(pLabel)->innerRegion.bounds.columns) / 2;
+        W(pLabel)->innerRegion.coord.column += (W(pLabel)->outerRegion.bounds.columns - W(pLabel)->innerRegion.bounds.columns) / 2;
         break;
 
       case QCURSES_ALIGN_RIGHT_BIT:
-        W(pLabel)->innerRegion.coord.column = W(pLabel)->outerRegion.bounds.columns - W(pLabel)->innerRegion.bounds.columns;
+        W(pLabel)->innerRegion.coord.column += W(pLabel)->outerRegion.bounds.columns - W(pLabel)->innerRegion.bounds.columns;
         break;
 
       default:
@@ -114,15 +116,15 @@ QCURSES_PAINTER(
     }
     switch (P(pLabel)->alignment & QCURSES_ALIGN_VERTICAL_MASK) {
       case QCURSES_ALIGN_TOP_BIT:
-        W(pLabel)->innerRegion.coord.row = 0;
+        W(pLabel)->innerRegion.coord.row += 0;
         break;
 
       case QCURSES_ALIGN_MIDDLE_BIT:
-        W(pLabel)->innerRegion.coord.row = (W(pLabel)->outerRegion.bounds.rows - W(pLabel)->innerRegion.bounds.rows) / 2;
+        W(pLabel)->innerRegion.coord.row += (W(pLabel)->outerRegion.bounds.rows - W(pLabel)->innerRegion.bounds.rows) / 2;
         break;
 
       case QCURSES_ALIGN_BOTTOM_BIT:
-        W(pLabel)->innerRegion.coord.row = W(pLabel)->outerRegion.bounds.rows - W(pLabel)->innerRegion.bounds.rows;
+        W(pLabel)->innerRegion.coord.row += W(pLabel)->outerRegion.bounds.rows - W(pLabel)->innerRegion.bounds.rows;
         break;
 
       default:
@@ -221,7 +223,6 @@ QCURSES_PAINTER(
         return EFAULT;
     }
 
-
     // Move to the ideal innerRegion offset and print the string.
     // Offset the pString pointer by the full lineLength (+1 for newline) for next line.
     printCoord = qcurses_coord(
@@ -272,11 +273,8 @@ int qcurses_create_label (
   }
 
   // Grab the application private implementation pointer.
-  // TODO: For now, don't implement an allocator pass-through layer.
-  //       Eventually we have to think of a creative way to bypass this issue.
-  //       As I assume that we will have multiple allocation layers.
   P(label)->alignment = QCURSES_ALIGN_MIDDLE_BIT | QCURSES_ALIGN_CENTER_BIT;
-  lt3_alloc_host_init(&P(label)->allocator);
+  qcurses_lt3alloc_init(W(label)->pAllocator, &P(label)->allocator);
   lt3_string_init(&P(label)->contents);
 
   // Return the application to the caller.

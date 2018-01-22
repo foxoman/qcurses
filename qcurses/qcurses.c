@@ -25,32 +25,120 @@ extern "C" {
 #endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
+// QCurses Static Functions
+////////////////////////////////////////////////////////////////////////////////
+
+//------------------------------------------------------------------------------
+static void * qcurses_host_allocate (
+  qcurses_alloc_t const *               pAllocator,
+  size_t                                n,
+  size_t                                align
+) {
+  (void)pAllocator;
+  return aligned_alloc(align, n);
+}
+
+//------------------------------------------------------------------------------
+static void * qcurses_host_reallocate (
+  qcurses_alloc_t const *               pAllocator,
+  void *                                ptr,
+  size_t                                n
+) {
+  (void)pAllocator;
+  return realloc(ptr, n);
+}
+
+//------------------------------------------------------------------------------
+static void qcurses_host_free (
+  qcurses_alloc_t const *               pAllocator,
+  void *                                ptr
+) {
+  (void)pAllocator;
+  free(ptr);
+}
+
+//------------------------------------------------------------------------------
+static qcurses_alloc_t const sDefaultAllocator = {
+  &qcurses_host_allocate,
+  &qcurses_host_reallocate,
+  &qcurses_host_free
+};
+
+////////////////////////////////////////////////////////////////////////////////
 // QCurses Functions
 ////////////////////////////////////////////////////////////////////////////////
-// TODO: For now, have an allocator abstraction layer, but don't implement the allocators.
-//       Gotta figure out how to better utilize a pass-through for LT3 first.
 
+//------------------------------------------------------------------------------
+void * qcurses_allocate_unsafe (
+  qcurses_alloc_t const *               pAllocator,
+  size_t                                n,
+  size_t                                align
+) {
+  return pAllocator->pfnAllocate(pAllocator, n, align);
+}
+
+//------------------------------------------------------------------------------
+void * qcurses_reallocate_unsafe (
+  qcurses_alloc_t const *               pAllocator,
+  void *                                ptr,
+  size_t                                n
+) {
+  return pAllocator->pfnReallocate(pAllocator, ptr, n);
+}
+
+//------------------------------------------------------------------------------
+void qcurses_free_unsafe (
+  qcurses_alloc_t const *               pAllocator,
+  void *                                ptr
+) {
+  pAllocator->pfnFree(pAllocator, ptr);
+}
+
+//------------------------------------------------------------------------------
 void * qcurses_allocate (
   qcurses_alloc_t const *               pAllocator,
   size_t                                n,
   size_t                                align
 ) {
-  return aligned_alloc(align, n);
+  if (!pAllocator)
+    return qcurses_host_allocate(pAllocator, n, align);
+  return pAllocator->pfnAllocate(pAllocator, n, align);
 }
 
+//------------------------------------------------------------------------------
 void * qcurses_reallocate (
   qcurses_alloc_t const *               pAllocator,
   void *                                ptr,
   size_t                                n
 ) {
-  return realloc(ptr, n);
+  if (!pAllocator)
+    return qcurses_host_reallocate(pAllocator, ptr, n);
+  return pAllocator->pfnReallocate(pAllocator, ptr, n);
 }
 
+//------------------------------------------------------------------------------
 void qcurses_free (
   qcurses_alloc_t const *               pAllocator,
   void *                                ptr
 ) {
-  free(ptr);
+  if (!pAllocator)
+    qcurses_host_free(pAllocator, ptr);
+  else
+    pAllocator->pfnFree(pAllocator, ptr);
+}
+
+//------------------------------------------------------------------------------
+void qcurses_host_allocator_init (
+  qcurses_alloc_t *                     pAllocator
+) {
+  pAllocator->pfnAllocate = &qcurses_host_allocate;
+  pAllocator->pfnReallocate = &qcurses_host_reallocate;
+  pAllocator->pfnFree = &qcurses_host_free;
+}
+
+//------------------------------------------------------------------------------
+qcurses_alloc_t const * qcurses_default_allocator () {
+  return &sDefaultAllocator;
 }
 
 #ifdef    __cplusplus

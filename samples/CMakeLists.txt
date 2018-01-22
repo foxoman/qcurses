@@ -33,6 +33,15 @@ add_executable(label ${SAMPLE_LABEL_SRC})
 target_link_libraries(label qcurses)
 
 ################################################################################
+# layout
+################################################################################
+set(SAMPLE_LAYOUT_SRC
+  layout/main.c
+)
+add_executable(layout ${SAMPLE_LAYOUT_SRC})
+target_link_libraries(layout qcurses)
+
+################################################################################
 # status_bar
 ################################################################################
 # TODO: Currently commented-out until I am able to finish refactoring.

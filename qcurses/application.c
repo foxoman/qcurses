@@ -37,6 +37,7 @@ QCURSES_PIMPL_STRUCT(qcurses_application_t) {
   qcurses_bool_t                        canChangeColors;
   qcurses_coord_t                       mouseCoord;
   mmask_t                               mouseEvents;
+  qcurses_region_t                      screenRegion;
   qcurses_mouse_t                       stickyMouseState;
   qcurses_painter_t                     painter;
   qcurses_widget_t *                    pMainWidget;
@@ -56,12 +57,6 @@ QCURSES_RECALC(
 ) {
   int err;
   char * pNewBuffer;
-
-  // If the actual region has not changed, we can simply ignore the recalculate step.
-  // This means a recalculate was requested, but that none of the math would change.
-  if (qcurses_region_equal(&W(pThis)->outerRegion, pRegion)) {
-    return 0;
-  }
 
   // Update the application's painter instance.
   P(pThis)->painter.boundary = pRegion->bounds;
@@ -166,13 +161,11 @@ static int qcurses_application_update_resize (
   }
 
   // Update the last-known application screen sizes.
+  // TODO: Really, find out what to do about this resize/recalculate thing.
+  //       Maybe this needs to be sketched out and designed, this is annoying.
+  P(pApplication)->screenRegion = resize;
+  qcurses_widget_mark_dirty(pApplication);
   qcurses_widget_emit(pApplication, onResize, &resize.bounds);
-
-  // Recalculate the sizes of all the widgets within the application.
-  err = qcurses_application_recalculate(pApplication, &resize);
-  if (err) {
-    return err;
-  }
 
   return 0;
 }
@@ -398,6 +391,10 @@ static int qcurses_application_update (
 
   // Handle the visual update iff the application is marked dirty.
   if (qcurses_widget_is_dirty(pApplication)) {
+    err = qcurses_application_recalculate(pApplication, &P(pApplication)->screenRegion);
+    if (err) {
+      return err;
+    }
     err = qcurses_application_paint(pApplication, &P(pApplication)->painter);
     if (err) {
       return err;

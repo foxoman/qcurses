@@ -28,6 +28,7 @@ include(Versioning)
 ################################################################################
 set(CURSES_NEED_NCURSES TRUE)
 find_package(Curses REQUIRED)
+find_package(Lt3 REQUIRED COMPONENTS String)
 
 ################################################################################
 # Project Includes
@@ -58,6 +59,8 @@ set(QCURSES_SRC
   qcurses/fwdqcurses.h
   qcurses/label.c
   qcurses/label.h
+  qcurses/layout.c
+  qcurses/layout.h
   qcurses/math.h
   qcurses/menu_bar.h
   qcurses/painter.c
@@ -72,7 +75,7 @@ set(QCURSES_SRC
 )
 
 add_library(qcurses ${QCURSES_SRC})
-target_link_libraries(qcurses ${CURSES_LIBRARIES})
+target_link_libraries(qcurses ${CURSES_LIBRARIES} Lt3::String)
 
 ################################################################################
 # Misc. Binaries and Drivers
