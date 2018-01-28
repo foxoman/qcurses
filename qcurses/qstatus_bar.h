@@ -13,22 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-#ifndef   QCURSES_PAINTER_INL
-#define   QCURSES_PAINTER_INL
+#ifndef   QSTATUS_BAR_H
+#define   QSTATUS_BAR_H
 
-#include "math.h"
-#include <ncurses.h>
+#include "qcurses.h"
+#include "qwidget.h"
+
+#ifdef    __cplusplus
+extern "C" {
+#endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
-// Painter Definition
+// Status Bar Definition
 ////////////////////////////////////////////////////////////////////////////////
 
-struct qcurses_painter_t
-{
-  WINDOW *                              pWindow;
-  qcurses_bounds_t                      boundary;
-  qcurses_bounds_t                      maxBounds;
-  char *                                pClearBrush;
-};
+//------------------------------------------------------------------------------
+QWIDGET_BEGIN(qstatus_bar_t)
+  // Intentionally Empty
+QWIDGET_END
 
-#endif // QCURSES_PAINTER_INL
+#ifdef    __cplusplus
+}
+#endif // __cplusplus
+
+#endif // QSTATUS_BAR_H

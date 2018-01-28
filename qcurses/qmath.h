@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-#ifndef   QCURSES_MATH_H
-#define   QCURSES_MATH_H
+#ifndef   QMATH_H
+#define   QMATH_H
 
-#include "fwdqcurses.h"
+#include "qcurses.h"
 #include <stdlib.h>
 
 #ifdef    __cplusplus
@@ -28,64 +28,69 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-struct qcurses_coord_t {
+struct qcoord_t {
   size_t                                row;
   size_t                                column;
 };
 
 //------------------------------------------------------------------------------
-struct qcurses_bounds_t {
+struct qbounds_t {
   size_t                                rows;
   size_t                                columns;
 };
 
 //------------------------------------------------------------------------------
-struct qcurses_region_t {
-  qcurses_coord_t                       coord;
-  qcurses_bounds_t                      bounds;
+struct qregion_t {
+  qcoord_t                              coord;
+  qbounds_t                             bounds;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // Math Functions
 ////////////////////////////////////////////////////////////////////////////////
 
-static inline qcurses_coord_t QCURSESCALL qcurses_coord (
+//------------------------------------------------------------------------------
+static inline qcoord_t QCURSESCALL qcoord (
   size_t                                x,
   size_t                                y
 ) {
-  qcurses_coord_t coord;
+  qcoord_t coord;
   coord.row     = y;
   coord.column  = x;
   return coord;
 }
 
-static inline int QCURSESCALL qcurses_coord_equal (
-  qcurses_coord_t const *               pLhs,
-  qcurses_coord_t const *               pRhs
+//------------------------------------------------------------------------------
+static inline int QCURSESCALL qcoord_equal (
+  qcoord_t const *                      pLhs,
+  qcoord_t const *                      pRhs
 ) {
   return (pLhs->column == pRhs->column && pLhs->row == pRhs->row);
 }
 
-static inline qcurses_bounds_t QCURSESCALL qcurses_bounds (
+//------------------------------------------------------------------------------
+static inline qbounds_t QCURSESCALL qbounds (
   size_t                                rows,
   size_t                                columns
 ) {
-  qcurses_bounds_t bounds;
+  qbounds_t bounds;
   bounds.rows     = rows;
   bounds.columns  = columns;
   return bounds;
 }
 
-static inline int QCURSESCALL qcurses_bounds_equal (
-  qcurses_bounds_t const *              pLhs,
-  qcurses_bounds_t const *              pRhs
+//------------------------------------------------------------------------------
+static inline int QCURSESCALL qbounds_equal (
+  qbounds_t const *                     pLhs,
+  qbounds_t const *                     pRhs
 ) {
   return (pLhs->columns == pRhs->columns && pLhs->rows == pRhs->rows);
 }
 
-static inline int QCURSESCALL qcurses_bounds_contains (
-  qcurses_bounds_t const *              pBounds,
-  qcurses_coord_t const *               pCoord
+//------------------------------------------------------------------------------
+static inline int QCURSESCALL qbounds_contains (
+  qbounds_t const *              pBounds,
+  qcoord_t const *               pCoord
 ) {
   return (
     pBounds->rows     > pCoord->row     &&
@@ -93,29 +98,31 @@ static inline int QCURSESCALL qcurses_bounds_contains (
   );
 }
 
-static inline qcurses_region_t QCURSESCALL qcurses_region (
+//------------------------------------------------------------------------------
+static inline qregion_t QCURSESCALL qregion (
   size_t                                x,
   size_t                                y,
   size_t                                rows,
   size_t                                columns
 ) {
-  qcurses_region_t region;
-  region.coord  = qcurses_coord(x, y);
-  region.bounds = qcurses_bounds(rows, columns);
+  qregion_t region;
+  region.coord  = qcoord(x, y);
+  region.bounds = qbounds(rows, columns);
   return region;
 }
 
-static inline int QCURSESCALL qcurses_region_equal (
-  qcurses_region_t const *              pLhs,
-  qcurses_region_t const *              pRhs
+//------------------------------------------------------------------------------
+static inline int QCURSESCALL qregion_equal (
+  qregion_t const *                     pLhs,
+  qregion_t const *                     pRhs
 ) {
   return
-    qcurses_coord_equal(&pLhs->coord, &pRhs->coord) &&
-    qcurses_bounds_equal(&pLhs->bounds, &pRhs->bounds);
+    qcoord_equal(&pLhs->coord, &pRhs->coord) &&
+    qbounds_equal(&pLhs->bounds, &pRhs->bounds);
 }
 
 #ifdef    __cplusplus
 }
 #endif // __cplusplus
 
-#endif // QCURSES_MATH_H
+#endif // QMATH_H

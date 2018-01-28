@@ -17,7 +17,7 @@
  ******************************************************************************/
 
 #include <qcurses/qcurses.h>
-#include <qcurses/application.h>
+#include <qcurses/qapplication.h>
 #include <string.h>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -29,24 +29,24 @@
 #define APPLICATION_VERSION     "v1.0"
 #define APPLICATION_DESCRIPTION "A minimal application using no widgets."
 
-#define QCURSES_CHECK(s) do { int err = s; if (err) return err; } while (0)
+#define QCHECK(s) do { int err = s; if (err) return err; } while (0)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Application Callbacks
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-QCURSES_SLOT(
+QSLOT(
   application_quit,
-  qcurses_application_t *               pThis,
-  qcurses_keycode_t                     code,
+  qapplication_t *                      pThis,
+  qkey_t                                code,
   int                                   value
 ) {
   (void)value;
 
   // If the user presses "Q", we should prepare to quit.
-  if (code == QCURSES_KEYCODE_Q) {
-    return qcurses_application_quit(pThis);
+  if (code == QKEY_Q) {
+    return qapplication_quit(pThis, 0);
   }
 
   return 0;
@@ -58,11 +58,11 @@ QCURSES_SLOT(
 
 //------------------------------------------------------------------------------
 static int main_prepare_application (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_application_t *               pApplication
+  qalloc_t const *                      pAllocator,
+  qapplication_t *                      pApplication
 ) {
   (void)pAllocator;
-  QCURSES_CHECK(qcurses_widget_connect(pApplication, onKey, pApplication, application_quit));
+  QCHECK(qwidget_connect(pApplication, on_key, pApplication, application_quit));
   return 0;
 }
 
@@ -72,10 +72,10 @@ static int main_prepare_application (
 
 //------------------------------------------------------------------------------
 int main (int argc, char const * argv[]) {
-  qcurses_application_t* app;
+  qapplication_t * app;
 
   // Prepare the application for initialization.
-  qcurses_application_info_t appInfo;
+  qapplication_info_t appInfo;
   memset(&appInfo, 0, sizeof(appInfo));
   appInfo.pAllocator        = NULL;
   appInfo.pApplicationName  = APPLICATION_NAME;
@@ -84,10 +84,10 @@ int main (int argc, char const * argv[]) {
   appInfo.pDescription      = APPLICATION_DESCRIPTION;
 
   // Run the application by creating, preparing, running, and destroying.
-  QCURSES_CHECK(qcurses_create_application(&appInfo, &app));
-  QCURSES_CHECK(main_prepare_application(appInfo.pAllocator, app));
-  QCURSES_CHECK(qcurses_application_run(app));
-  qcurses_destroy_application(app);
+  QCHECK(qcreate_application(&appInfo, &app));
+  QCHECK(main_prepare_application(appInfo.pAllocator, app));
+  QCHECK(qapplication_run(app));
+  qdestroy_application(app);
 
   return 0;
 }

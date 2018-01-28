@@ -17,9 +17,9 @@
  ******************************************************************************/
 
 #include <qcurses/qcurses.h>
-#include <qcurses/application.h>
-#include <qcurses/label.h>
-#include <qcurses/status_bar.h>
+#include <qcurses/qapplication.h>
+#include <qcurses/qlabel.h>
+#include <qcurses/qstatus_bar.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -32,7 +32,7 @@
 #define APPLICATION_VERSION     "v1.0"
 #define APPLICATION_DESCRIPTION "A simple application with minimal UI."
 
-#define QCURSES_CHECK(s) do { int err = s; if (err) return err; } while (0)
+#define QCHECK(s) do { int err = s; if (err) return err; } while (0)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Application Globals
@@ -45,25 +45,25 @@ static char s_buffer[1024];
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-QCURSES_SLOT(
+QSLOT(
   application_quit,
-  qcurses_application_t *               pThis,
-  qcurses_signal_key_t const *          pParams
+  qapplication_t *                      pThis,
+  qsignal_key_t const *                 pParams
 ) {
 
   // If the user presses "Q", we should prepare to quit.
-  if (pParams->code == QCURSES_KEYCODE_Q) {
-    return qcurses_application_quit(pThis);
+  if (pParams->code == QKEY_Q) {
+    return qapplication_quit(pThis, 0);
   }
 
   return 0;
 }
 
 //------------------------------------------------------------------------------
-QCURSES_SLOT(
+QSLOT(
   label_show_key,
-  qcurses_label_t *                     pThis,
-  qcurses_signal_key_t const *          pParams
+  qlabel_t *                            pThis,
+  qsignal_key_t const *                 pParams
 ) {
   int bytesWritten;
 
@@ -80,15 +80,15 @@ QCURSES_SLOT(
   }
 
   // Present the resulting text in the label.
-  QCURSES_CHECK(qcurses_label_set_text_n(pThis, s_buffer, (size_t)bytesWritten));
+  QCHECK(qlabel_set_text_n(pThis, s_buffer, (size_t)bytesWritten));
   return 0;
 }
 
 //------------------------------------------------------------------------------
-QCURSES_SLOT(
+QSLOT(
   label_show_size,
-  qcurses_label_t *                     pThis,
-  qcurses_signal_resize_t const *       pParams
+  qlabel_t *                            pThis,
+  qsignal_resize_t const *              pParams
 ) {
   int bytesWritten;
 
@@ -105,7 +105,7 @@ QCURSES_SLOT(
   }
 
   // Present the resulting text in the label.
-  QCURSES_CHECK(qcurses_label_set_text_n(pThis, s_buffer, (size_t)bytesWritten));
+  QCHECK(qlabel_set_text_n(pThis, s_buffer, (size_t)bytesWritten));
   return 0;
 }
 
@@ -115,57 +115,57 @@ QCURSES_SLOT(
 
 //------------------------------------------------------------------------------
 static int main_prepare_status_bar (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_application_t *               pApplication
+  qalloc_t const *                      pAllocator,
+  qapplication_t *                      pApplication
 ) {
-  qcurses_label_t * label;
-  qcurses_status_bar_t * statusBar;
+  qlabel_t * label;
+  qstatus_bar_t * statusBar;
 
   // Create a status bar for our application.
-  QCURSES_CHECK(qcurses_create_status_bar(pAllocator, &statusBar));
+  QCHECK(qcreate_status_bar(pAllocator, &statusBar));
 
   // Create a label which will sit in the status bar.
-  QCURSES_CHECK(qcurses_create_label(pAllocator, &label));
-  QCURSES_CHECK(qcurses_label_set_align(label, QCURSES_ALIGN_LEFT_BIT));
-  QCURSES_CHECK(qcurses_widget_connect(pApplication, onKey, label, label_show_key));
-  QCURSES_CHECK(qcurses_status_bar_insert(statusBar, label));
+  QCHECK(qcreate_label(pAllocator, &label));
+  QCHECK(qlabel_set_align(label, QALIGN_LEFT_BIT));
+  QCHECK(qwidget_connect(pApplication, on_key, label, label_show_key));
+  QCHECK(qstatus_bar_insert(statusBar, label));
 
   // Add a second label, they should both now take up half of the screen.
-  QCURSES_CHECK(qcurses_create_label(pAllocator, &label));
-  QCURSES_CHECK(qcurses_label_set_align(label, QCURSES_ALIGN_RIGHT_BIT));
-  QCURSES_CHECK(qcurses_widget_connect(pApplication, onResize, label, label_show_size));
-  QCURSES_CHECK(qcurses_status_bar_insert(statusBar, label));
+  QCHECK(qcreate_label(pAllocator, &label));
+  QCHECK(qlabel_set_align(label, QALIGN_RIGHT_BIT));
+  QCHECK(qwidget_connect(pApplication, resize, label, label_show_size));
+  QCHECK(qstatus_bar_insert(statusBar, label));
 
   // Add the label to the status bar, then add it to the app.
-  QCURSES_CHECK(qcurses_application_set_status_bar(pApplication, statusBar));
+  QCHECK(qapplication_set_status_bar(pApplication, statusBar));
 
   return 0;
 }
 
 //------------------------------------------------------------------------------
 static int main_prepare_main_widget (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_application_t *               pApplication
+  qalloc_t const *                      pAllocator,
+  qapplication_t *                      pApplication
 ) {
-  qcurses_label_t * label;
+  qlabel_t * label;
 
   // Create a label for information.
-  QCURSES_CHECK(qcurses_create_label(pAllocator, &label));
-  QCURSES_CHECK(qcurses_label_set_align(label, QCURSES_ALIGN_CENTER_BIT | QCURSES_ALIGN_MIDDLE_BIT));
-  QCURSES_CHECK(qcurses_label_set_text_k(label, "Press any key, or resize the window. Press Q to quit."));
-  QCURSES_CHECK(qcurses_application_set_main_widget(pApplication, label));
+  QCHECK(qcreate_label(pAllocator, &label));
+  QCHECK(qlabel_set_align(label, QALIGN_CENTER_BIT | QALIGN_MIDDLE_BIT));
+  QCHECK(qlabel_set_text_k(label, "Press any key, or resize the window. Press Q to quit."));
+  QCHECK(qapplication_set_main_widget(pApplication, label));
 
   return 0;
 }
 
 //------------------------------------------------------------------------------
 static int main_prepare_application (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_application_t *               pApplication
+  qalloc_t const *                      pAllocator,
+  qapplication_t *                      pApplication
 ) {
-  QCURSES_CHECK(qcurses_widget_connect(pApplication, onKey, pApplication, application_quit));
-  QCURSES_CHECK(main_prepare_main_widget(pAllocator, pApplication));
-  QCURSES_CHECK(main_prepare_status_bar(pAllocator, pApplication));
+  QCHECK(qwidget_connect(pApplication, on_key, pApplication, application_quit));
+  QCHECK(main_prepare_main_widget(pAllocator, pApplication));
+  QCHECK(main_prepare_status_bar(pAllocator, pApplication));
   return 0;
 }
 
@@ -175,10 +175,10 @@ static int main_prepare_application (
 
 //------------------------------------------------------------------------------
 int main (int argc, char const * argv[]) {
-  qcurses_application_t* app;
+  qapplication_t* app;
 
   // Prepare the application for initialization.
-  qcurses_application_info_t appInfo;
+  qapplication_info_t appInfo;
   memset(&appInfo, 0, sizeof(appInfo));
   appInfo.pAllocator        = NULL;
   appInfo.pApplicationName  = APPLICATION_NAME;
@@ -187,10 +187,10 @@ int main (int argc, char const * argv[]) {
   appInfo.pDescription      = APPLICATION_DESCRIPTION;
 
   // Run the application by creating, preparing, running, and destroying.
-  QCURSES_CHECK(qcurses_create_application(&appInfo, &app));
-  QCURSES_CHECK(main_prepare_application(appInfo.pAllocator, app));
-  QCURSES_CHECK(qcurses_application_run(app));
-  qcurses_destroy_application(app);
+  QCHECK(qcreate_application(&appInfo, &app));
+  QCHECK(main_prepare_application(appInfo.pAllocator, app));
+  QCHECK(qapplication_run(app));
+  qdestroy_application(app);
 
   return 0;
 }

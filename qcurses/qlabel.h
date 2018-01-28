@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-#ifndef   QCURSES_LABEL_H
-#define   QCURSES_LABEL_H
+#ifndef   QLABEL_H
+#define   QLABEL_H
 
 #include "qcurses.h"
-#include "widget.h"
+#include "qwidget.h"
 
 #ifdef    __cplusplus
 extern "C" {
@@ -27,57 +27,60 @@ extern "C" {
 // Label Definition
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO: margin, indent, wordwrap mode (qcurses_wrap_t?).
+// TODO: margin, indent, wordwrap mode (qwrap_t?).
 //------------------------------------------------------------------------------
-QCURSES_WIDGET_BEGIN(qcurses_label_t, qcurses_widget_t)
-  // Intentionally Empty
-QCURSES_WIDGET_END
+QWIDGET_BEGIN(qlabel_t)
+  QWIDGET_SIGNALS_BEGIN
+    QSIGNAL(set_align, qalign_t);
+    QSIGNAL(set_text, char const *, size_t n);
+  QWIDGET_SIGNALS_END
+QWIDGET_END
 
 ////////////////////////////////////////////////////////////////////////////////
 // Label Functions
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-int qcurses_create_label (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_label_t **                    pLabel
+int QCURSESCALL qcreate_label (
+  qalloc_t const *                      pAllocator,
+  qlabel_t **                           pLabel
 );
 
 //------------------------------------------------------------------------------
-void qcurses_destroy_label (
-  qcurses_label_t *                     pLabel
+void QCURSESCALL qdestroy_label (
+  qlabel_t *                            pLabel
 );
 
 //------------------------------------------------------------------------------
-int qcurses_label_set_align (
-  qcurses_label_t *                     pLabel,
-  qcurses_align_t                       alignment
+int QCURSESCALL qlabel_set_align (
+  qlabel_t *                            pLabel,
+  qalign_t                              alignment
 );
 
 //------------------------------------------------------------------------------
-qcurses_align_t qcurses_label_get_align (
-  qcurses_label_t *                     pLabel
+qalign_t QCURSESCALL qlabel_get_align (
+  qlabel_t *                            pLabel
 );
 
 //------------------------------------------------------------------------------
-int qcurses_label_set_text (
-  qcurses_label_t *                     pLabel,
+int QCURSESCALL qlabel_set_text (
+  qlabel_t *                            pLabel,
   char const *                          text
 );
 
 //------------------------------------------------------------------------------
-int qcurses_label_set_text_n (
-  qcurses_label_t *                     pLabel,
+int QCURSESCALL qlabel_set_text_n (
+  qlabel_t *                            pLabel,
   char const *                          text,
   size_t                                n
 );
 
 //------------------------------------------------------------------------------
-#define qcurses_label_set_text_k(pLabel, text)                                  \
-  qcurses_label_set_text_n(pLabel, text, sizeof(text) - 1)
+#define qlabel_set_text_k(pLabel, text)                                         \
+  qlabel_set_text_n(pLabel, text, sizeof(text) - 1)
 
 #ifdef    __cplusplus
 }
 #endif // __cplusplus
 
-#endif // QCURSES_LABEL_H
+#endif // QLABEL_H

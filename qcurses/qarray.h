@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-#ifndef   QCURSES_ARRAY_H
-#define   QCURSES_ARRAY_H
+#ifndef   QARRAY_H
+#define   QARRAY_H
 
 #include "qcurses.h"
 
@@ -27,7 +27,7 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-#define QCURSES_DEFINE_ARRAY(type) struct {                                     \
+#define QDEFINE_ARRAY(type) struct {                                            \
   type *                                pData;                                  \
   uint32_t                              count;                                  \
   uint32_t                              capacity;                               \
@@ -38,109 +38,109 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-typedef QCURSES_DEFINE_ARRAY(char) qcurses_array_t;
+typedef QDEFINE_ARRAY(char) qarray_t;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Array Functions
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-int QCURSESCALL __qcurses_array_init(
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_array_t *                     pArray,
+int QCURSESCALL __qarray_init(
+  qalloc_t const *                      pAllocator,
+  qarray_t *                            pArray,
   size_t                                elementSize,
   uint32_t                              initialCapacity
 );
 
 //------------------------------------------------------------------------------
-#define qcurses_array_init(pAllocator, pArray, initialCapacity)                 \
-  __qcurses_array_init(                                                         \
+#define qarray_init(pAllocator, pArray, initialCapacity)                        \
+  __qarray_init(                                                                \
     pAllocator,                                                                 \
-    (qcurses_array_t *)(pArray),                                                \
+    (qarray_t *)(pArray),                                                       \
     sizeof((pArray)->pData[0]),                                                 \
     initialCapacity                                                             \
   )
 
 //------------------------------------------------------------------------------
-void QCURSESCALL __qcurses_array_deinit (
-  qcurses_alloc_t const *                 pAllocator,
-  qcurses_array_t *                       pArray
+void QCURSESCALL __qarray_deinit (
+  qalloc_t const *                      pAllocator,
+  qarray_t *                            pArray
 );
 
 //------------------------------------------------------------------------------
-#define qcurses_array_deinit(pAllocator, pArray)                                \
-  __qcurses_array_deinit(                                                       \
+#define qarray_deinit(pAllocator, pArray)                                       \
+  __qarray_deinit(                                                              \
     pAllocator,                                                                 \
-    (qcurses_array_t *)(pArray),                                                \
+    (qarray_t *)(pArray),                                                       \
   )
 
 //------------------------------------------------------------------------------
-int QCURSESCALL __qcurses_array_resize(
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_array_t *                     pArray,
+int QCURSESCALL __qarray_resize(
+  qalloc_t const *                      pAllocator,
+  qarray_t *                            pArray,
   size_t                                elementSize,
   uint32_t                              capacity
 );
 
 //------------------------------------------------------------------------------
-#define qcurses_array_resize(pAllocator, pArray, newCapacity)                   \
-  __qcurses_array_resize(                                                       \
+#define qarray_resize(pAllocator, pArray, newCapacity)                          \
+  __qarray_resize(                                                              \
     pAllocator,                                                                 \
-    (qcurses_array_t *)(pArray),                                                \
+    (qarray_t *)(pArray),                                                       \
     sizeof((pArray)->pData[0]),                                                 \
     newCapacity                                                                 \
   )
 
 //------------------------------------------------------------------------------
-int QCURSESCALL __qcurses_array_grow (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_array_t *                     pArray,
+int QCURSESCALL __qarray_grow (
+  qalloc_t const *                      pAllocator,
+  qarray_t *                            pArray,
   uint32_t                              elementSize
 );
 
 //------------------------------------------------------------------------------
-#define qcurses_array_grow(pAllocator, pArray)                                  \
-  __qcurses_array_grow(                                                         \
+#define qarray_grow(pAllocator, pArray)                                         \
+  __qarray_grow(                                                                \
     pAllocator,                                                                 \
-    (qcurses_array_t *)(pArray),                                                \
+    (qarray_t *)(pArray),                                                       \
     sizeof((pArray)->pData[0])                                                  \
   )
 
 //------------------------------------------------------------------------------
-int QCURSESCALL __qcurses_array_push (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_array_t *                     pArray,
+int QCURSESCALL __qarray_push (
+  qalloc_t const *                      pAllocator,
+  qarray_t *                            pArray,
   uint32_t                              elementSize,
   void const *                          pData
 );
 
 //------------------------------------------------------------------------------
-#define qcurses_array_push(pAllocator, pArray, element)                         \
-  __qcurses_array_push(                                                         \
+#define qarray_push(pAllocator, pArray, element)                                \
+  __qarray_push(                                                                \
     pAllocator,                                                                 \
-    (qcurses_array_t *)(pArray),                                                \
+    (qarray_t *)(pArray),                                                       \
     sizeof((pArray)->pData[0]),                                                 \
     &element                                                                    \
   )
 
 //------------------------------------------------------------------------------
-#define qcurses_array_clear(pArray)                                             \
+#define qarray_clear(pArray)                                                    \
   ((pArray)->count = 0)
 
 //------------------------------------------------------------------------------
-#define qcurses_array_full(pArray)                                              \
+#define qarray_full(pArray)                                                     \
   ((pArray)->count == (pArray)->capacity)
 
 //------------------------------------------------------------------------------
-#define qcurses_array_empty(pArray)                                             \
+#define qarray_empty(pArray)                                                    \
   ((pArray)->count == 0)
 
 //------------------------------------------------------------------------------
-#define qcurses_array_ensure(pAllocator, pArray)                                \
-  ((qcurses_array_full(pArray)) ? qcurses_array_grow(pAllocator, pArray) : 0)
+#define qarray_ensure(pAllocator, pArray)                                       \
+  ((qarray_full(pArray)) ? qarray_grow(pAllocator, pArray) : 0)
 
 #ifdef    __cplusplus
 }
 #endif // __cplusplus
 
-#endif // QCURSES_ARRAY_H
+#endif // QARRAY_H

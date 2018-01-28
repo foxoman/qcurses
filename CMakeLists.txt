@@ -17,7 +17,7 @@ project(QCurses C)
 # Project Configuration
 ################################################################################
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build Type (default: Debug)")
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/share;${CMAKE_SOURCE_DIR}/cmake/Modules")
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/share")
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 include(Common)
@@ -52,26 +52,23 @@ endif()
 # Core Library
 ################################################################################
 set(QCURSES_SRC
-  qcurses/application.c
-  qcurses/application.h
-  qcurses/array.c
-  qcurses/array.h
-  qcurses/fwdqcurses.h
-  qcurses/label.c
-  qcurses/label.h
-  qcurses/layout.c
-  qcurses/layout.h
-  qcurses/math.h
-  qcurses/menu_bar.h
-  qcurses/painter.c
-  qcurses/painter.h
-  qcurses/painter.inl
+  qcurses/qapplication.c
+  qcurses/qapplication.h
+  qcurses/qarray.c
+  qcurses/qarray.h
+  qcurses/qlabel.c
+  qcurses/qlabel.h
+  qcurses/qlayout.c
+  qcurses/qlayout.h
+  qcurses/qmath.h
+  qcurses/qmenu_bar.h
+  qcurses/qpainter.c
+  qcurses/qpainter.h
   qcurses/qcurses.c
   qcurses/qcurses.h
-  qcurses/status_bar.c
-  qcurses/status_bar.h
-  qcurses/widget.c
-  qcurses/widget.h
+  qcurses/qstatus_bar.h
+  qcurses/qwidget.c
+  qcurses/qwidget.h
 )
 
 add_library(qcurses ${QCURSES_SRC})

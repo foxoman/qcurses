@@ -29,8 +29,8 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-static void * qcurses_host_allocate (
-  qcurses_alloc_t const *               pAllocator,
+static void * qhost_allocate (
+  qalloc_t const *               pAllocator,
   size_t                                n,
   size_t                                align
 ) {
@@ -39,8 +39,8 @@ static void * qcurses_host_allocate (
 }
 
 //------------------------------------------------------------------------------
-static void * qcurses_host_reallocate (
-  qcurses_alloc_t const *               pAllocator,
+static void * qhost_reallocate (
+  qalloc_t const *               pAllocator,
   void *                                ptr,
   size_t                                n
 ) {
@@ -49,8 +49,8 @@ static void * qcurses_host_reallocate (
 }
 
 //------------------------------------------------------------------------------
-static void qcurses_host_free (
-  qcurses_alloc_t const *               pAllocator,
+static void qhost_free (
+  qalloc_t const *               pAllocator,
   void *                                ptr
 ) {
   (void)pAllocator;
@@ -58,10 +58,10 @@ static void qcurses_host_free (
 }
 
 //------------------------------------------------------------------------------
-static qcurses_alloc_t const sDefaultAllocator = {
-  &qcurses_host_allocate,
-  &qcurses_host_reallocate,
-  &qcurses_host_free
+static qalloc_t const sDefaultAllocator = {
+  &qhost_allocate,
+  &qhost_reallocate,
+  &qhost_free
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -69,8 +69,8 @@ static qcurses_alloc_t const sDefaultAllocator = {
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-void * qcurses_allocate_unsafe (
-  qcurses_alloc_t const *               pAllocator,
+void * QCURSESCALL qallocate_unsafe (
+  qalloc_t const *               pAllocator,
   size_t                                n,
   size_t                                align
 ) {
@@ -78,8 +78,8 @@ void * qcurses_allocate_unsafe (
 }
 
 //------------------------------------------------------------------------------
-void * qcurses_reallocate_unsafe (
-  qcurses_alloc_t const *               pAllocator,
+void * QCURSESCALL qreallocate_unsafe (
+  qalloc_t const *               pAllocator,
   void *                                ptr,
   size_t                                n
 ) {
@@ -87,57 +87,57 @@ void * qcurses_reallocate_unsafe (
 }
 
 //------------------------------------------------------------------------------
-void qcurses_free_unsafe (
-  qcurses_alloc_t const *               pAllocator,
+void QCURSESCALL qfree_unsafe (
+  qalloc_t const *               pAllocator,
   void *                                ptr
 ) {
   pAllocator->pfnFree(pAllocator, ptr);
 }
 
 //------------------------------------------------------------------------------
-void * qcurses_allocate (
-  qcurses_alloc_t const *               pAllocator,
+void * QCURSESCALL qallocate (
+  qalloc_t const *               pAllocator,
   size_t                                n,
   size_t                                align
 ) {
   if (!pAllocator)
-    return qcurses_host_allocate(pAllocator, n, align);
+    return qhost_allocate(pAllocator, n, align);
   return pAllocator->pfnAllocate(pAllocator, n, align);
 }
 
 //------------------------------------------------------------------------------
-void * qcurses_reallocate (
-  qcurses_alloc_t const *               pAllocator,
+void * QCURSESCALL qreallocate (
+  qalloc_t const *               pAllocator,
   void *                                ptr,
   size_t                                n
 ) {
   if (!pAllocator)
-    return qcurses_host_reallocate(pAllocator, ptr, n);
+    return qhost_reallocate(pAllocator, ptr, n);
   return pAllocator->pfnReallocate(pAllocator, ptr, n);
 }
 
 //------------------------------------------------------------------------------
-void qcurses_free (
-  qcurses_alloc_t const *               pAllocator,
+void QCURSESCALL qfree (
+  qalloc_t const *               pAllocator,
   void *                                ptr
 ) {
   if (!pAllocator)
-    qcurses_host_free(pAllocator, ptr);
+    qhost_free(pAllocator, ptr);
   else
     pAllocator->pfnFree(pAllocator, ptr);
 }
 
 //------------------------------------------------------------------------------
-void qcurses_host_allocator_init (
-  qcurses_alloc_t *                     pAllocator
+void QCURSESCALL qhost_allocator_init (
+  qalloc_t *                     pAllocator
 ) {
-  pAllocator->pfnAllocate = &qcurses_host_allocate;
-  pAllocator->pfnReallocate = &qcurses_host_reallocate;
-  pAllocator->pfnFree = &qcurses_host_free;
+  pAllocator->pfnAllocate = &qhost_allocate;
+  pAllocator->pfnReallocate = &qhost_reallocate;
+  pAllocator->pfnFree = &qhost_free;
 }
 
 //------------------------------------------------------------------------------
-qcurses_alloc_t const * qcurses_default_allocator () {
+qalloc_t const * QCURSESCALL qdefault_allocator () {
   return &sDefaultAllocator;
 }
 

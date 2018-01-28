@@ -14,44 +14,44 @@
  * limitations under the License.
  ******************************************************************************/
 
-#include "layout.h"
+#include "qlayout.h"
 
 // TODO: Support element stretching, margins, layout properties.
 ////////////////////////////////////////////////////////////////////////////////
 // Layout Implementations
 ////////////////////////////////////////////////////////////////////////////////
 
-struct qcurses_layout_element_t;
-typedef struct qcurses_layout_element_t {
-  struct qcurses_layout_element_t *     pNext;
-  struct qcurses_layout_element_t *     pPrevious;
-  qcurses_widget_t *                    pWidget;
+struct qlayout_element_t;
+typedef struct qlayout_element_t {
+  struct qlayout_element_t *     pNext;
+  struct qlayout_element_t *     pPrevious;
+  qwidget_t *                    pWidget;
   int                                   stretch;
-} qcurses_layout_element_t;
+} qlayout_element_t;
 
 //------------------------------------------------------------------------------
-struct QCURSES_PIMPL_NAME(qcurses_layout_t) {
-  qcurses_layout_element_t *            pWidgetsFirst;
-  qcurses_layout_element_t *            pWidgetsLast;
-  qcurses_layout_format_t               layoutFormat;
+struct QPIMPL_NAME(qlayout_t) {
+  qlayout_element_t *            pWidgetsFirst;
+  qlayout_element_t *            pWidgetsLast;
+  qlayout_format_t               layoutFormat;
   size_t                                widgetCount;
 };
 
 //------------------------------------------------------------------------------
-static int __qcurses_layout_reacalculate_vertical (
-  qcurses_layout_t *                    pLayout,
-  qcurses_region_t const *              pRegion
+static int __qlayout_reacalculate_vertical (
+  qlayout_t *                    pLayout,
+  qregion_t const *              pRegion
 ) {
   int err;
-  qcurses_layout_element_t * pElement;
-  qcurses_region_t subRegion;
+  qlayout_element_t * pElement;
+  qregion_t subRegion;
   size_t boundsIncrement;
   size_t boundsRemaining;
 
   // Given this information, we can split the widget into regions.
-  boundsIncrement = pRegion->bounds.rows / P(pLayout)->widgetCount;
-  boundsRemaining = pRegion->bounds.rows - (boundsIncrement * P(pLayout)->widgetCount);
-  subRegion = qcurses_region(
+  boundsIncrement = pRegion->bounds.rows / QP(pLayout)->widgetCount;
+  boundsRemaining = pRegion->bounds.rows - (boundsIncrement * QP(pLayout)->widgetCount);
+  subRegion = qregion(
     pRegion->coord.column,
     pRegion->coord.row,
     boundsIncrement,
@@ -59,7 +59,7 @@ static int __qcurses_layout_reacalculate_vertical (
   );
 
   // Calculate the region information per-widget
-  pElement = P(pLayout)->pWidgetsFirst;
+  pElement = QP(pLayout)->pWidgetsFirst;
   while (pElement) {
 
     // If this is the last widget, we should add the extraneous bounds.
@@ -68,7 +68,7 @@ static int __qcurses_layout_reacalculate_vertical (
     }
 
     // Recalculate the next widget in the bunch.
-    err = qcurses_widget_recalculate(pElement->pWidget, &subRegion);
+    err = qwidget_recalculate(pElement->pWidget, &subRegion);
     if (err) {
       return err;
     }
@@ -83,20 +83,20 @@ static int __qcurses_layout_reacalculate_vertical (
 }
 
 //------------------------------------------------------------------------------
-static int __qcurses_layout_reacalculate_vertical_reverse (
-  qcurses_layout_t *                    pLayout,
-  qcurses_region_t const *              pRegion
+static int __qlayout_reacalculate_vertical_reverse (
+  qlayout_t *                    pLayout,
+  qregion_t const *              pRegion
 ) {
   int err;
-  qcurses_layout_element_t * pElement;
-  qcurses_region_t subRegion;
+  qlayout_element_t * pElement;
+  qregion_t subRegion;
   size_t boundsIncrement;
   size_t boundsRemaining;
 
   // Given this information, we can split the widget into regions.
-  boundsIncrement = pRegion->bounds.rows / P(pLayout)->widgetCount;
-  boundsRemaining = pRegion->bounds.rows - (boundsIncrement * P(pLayout)->widgetCount);
-  subRegion = qcurses_region(
+  boundsIncrement = pRegion->bounds.rows / QP(pLayout)->widgetCount;
+  boundsRemaining = pRegion->bounds.rows - (boundsIncrement * QP(pLayout)->widgetCount);
+  subRegion = qregion(
     pRegion->coord.column,
     pRegion->coord.row,
     boundsIncrement,
@@ -104,7 +104,7 @@ static int __qcurses_layout_reacalculate_vertical_reverse (
   );
 
   // Calculate the region information per-widget
-  pElement = P(pLayout)->pWidgetsLast;
+  pElement = QP(pLayout)->pWidgetsLast;
   while (pElement) {
 
     // If this is the last widget, we should add the extraneous bounds.
@@ -113,7 +113,7 @@ static int __qcurses_layout_reacalculate_vertical_reverse (
     }
 
     // Recalculate the next widget in the bunch.
-    err = qcurses_widget_recalculate(pElement->pWidget, &subRegion);
+    err = qwidget_recalculate(pElement->pWidget, &subRegion);
     if (err) {
       return err;
     }
@@ -128,20 +128,20 @@ static int __qcurses_layout_reacalculate_vertical_reverse (
 }
 
 //------------------------------------------------------------------------------
-static int __qcurses_layout_recalculate_horizontal (
-  qcurses_layout_t *                    pLayout,
-  qcurses_region_t const *              pRegion
+static int __qlayout_recalculate_horizontal (
+  qlayout_t *                    pLayout,
+  qregion_t const *              pRegion
 ) {
   int err;
-  qcurses_layout_element_t * pElement;
-  qcurses_region_t subRegion;
+  qlayout_element_t * pElement;
+  qregion_t subRegion;
   size_t boundsIncrement;
   size_t boundsRemaining;
 
   // Given this information, we can split the widget into regions.
-  boundsIncrement = pRegion->bounds.columns / P(pLayout)->widgetCount;
-  boundsRemaining = pRegion->bounds.columns - (boundsIncrement * P(pLayout)->widgetCount);
-  subRegion = qcurses_region(
+  boundsIncrement = pRegion->bounds.columns / QP(pLayout)->widgetCount;
+  boundsRemaining = pRegion->bounds.columns - (boundsIncrement * QP(pLayout)->widgetCount);
+  subRegion = qregion(
     pRegion->coord.column,
     pRegion->coord.row,
     pRegion->bounds.rows,
@@ -149,7 +149,7 @@ static int __qcurses_layout_recalculate_horizontal (
   );
 
   // Calculate the region information per-widget
-  pElement = P(pLayout)->pWidgetsFirst;
+  pElement = QP(pLayout)->pWidgetsFirst;
   while (pElement) {
 
     // If this is the last widget, we should add the extraneous bounds.
@@ -158,7 +158,7 @@ static int __qcurses_layout_recalculate_horizontal (
     }
 
     // Recalculate the next widget in the bunch.
-    err = qcurses_widget_recalculate(pElement->pWidget, &subRegion);
+    err = qwidget_recalculate(pElement->pWidget, &subRegion);
     if (err) {
       return err;
     }
@@ -173,20 +173,20 @@ static int __qcurses_layout_recalculate_horizontal (
 }
 
 //------------------------------------------------------------------------------
-static int __qcurses_layout_recalculate_horizontal_reverse (
-  qcurses_layout_t *                    pLayout,
-  qcurses_region_t const *              pRegion
+static int __qlayout_recalculate_horizontal_reverse (
+  qlayout_t *                    pLayout,
+  qregion_t const *              pRegion
 ) {
   int err;
-  qcurses_layout_element_t * pElement;
-  qcurses_region_t subRegion;
+  qlayout_element_t * pElement;
+  qregion_t subRegion;
   size_t boundsIncrement;
   size_t boundsRemaining;
 
   // Given this information, we can split the widget into regions.
-  boundsIncrement = pRegion->bounds.columns / P(pLayout)->widgetCount;
-  boundsRemaining = pRegion->bounds.columns - (boundsIncrement * P(pLayout)->widgetCount);
-  subRegion = qcurses_region(
+  boundsIncrement = pRegion->bounds.columns / QP(pLayout)->widgetCount;
+  boundsRemaining = pRegion->bounds.columns - (boundsIncrement * QP(pLayout)->widgetCount);
+  subRegion = qregion(
     pRegion->coord.column,
     pRegion->coord.row,
     pRegion->bounds.rows,
@@ -194,7 +194,7 @@ static int __qcurses_layout_recalculate_horizontal_reverse (
   );
 
   // Calculate the region information per-widget
-  pElement = P(pLayout)->pWidgetsLast;
+  pElement = QP(pLayout)->pWidgetsLast;
   while (pElement) {
 
     // If this is the last widget, we should add the extraneous bounds.
@@ -203,7 +203,7 @@ static int __qcurses_layout_recalculate_horizontal_reverse (
     }
 
     // Recalculate the next widget in the bunch.
-    err = qcurses_widget_recalculate(pElement->pWidget, &subRegion);
+    err = qwidget_recalculate(pElement->pWidget, &subRegion);
     if (err) {
       return err;
     }
@@ -218,35 +218,35 @@ static int __qcurses_layout_recalculate_horizontal_reverse (
 }
 
 //------------------------------------------------------------------------------
-QCURSES_RECALC(
-  qcurses_layout_recalculate,
-  qcurses_layout_t *                    pLayout,
-  qcurses_region_t const *              pRegion
+QRECALC(
+  qlayout_recalculate,
+  qlayout_t *                    pLayout,
+  qregion_t const *              pRegion
 ) {
 
   // Calculate the full widget region information.
-  W(pLayout)->contentBounds = pRegion->bounds;
-  W(pLayout)->outerRegion = *pRegion;
-  W(pLayout)->innerRegion = *pRegion;
+  QW(pLayout)->contentBounds = pRegion->bounds;
+  QW(pLayout)->outerRegion = *pRegion;
+  QW(pLayout)->innerRegion = *pRegion;
 
-  switch (P(pLayout)->layoutFormat) {
-    case QCURSES_LAYOUT_VERTICAL:
-      return __qcurses_layout_reacalculate_vertical(
+  switch (QP(pLayout)->layoutFormat) {
+    case QLAYOUT_VERTICAL:
+      return __qlayout_reacalculate_vertical(
         pLayout,
         pRegion
       );
-    case QCURSES_LAYOUT_VERTICAL_REVERSE:
-      return __qcurses_layout_reacalculate_vertical_reverse(
+    case QLAYOUT_VERTICAL_REVERSE:
+      return __qlayout_reacalculate_vertical_reverse(
         pLayout,
         pRegion
       );
-    case QCURSES_LAYOUT_HORIZONTAL:
-      return __qcurses_layout_recalculate_horizontal(
+    case QLAYOUT_HORIZONTAL:
+      return __qlayout_recalculate_horizontal(
         pLayout,
         pRegion
       );
-    case QCURSES_LAYOUT_HORIZONTAL_REVERSE:
-      return __qcurses_layout_recalculate_horizontal_reverse(
+    case QLAYOUT_HORIZONTAL_REVERSE:
+      return __qlayout_recalculate_horizontal_reverse(
         pLayout,
         pRegion
       );
@@ -254,18 +254,18 @@ QCURSES_RECALC(
 }
 
 //------------------------------------------------------------------------------
-QCURSES_PAINTER(
-  qcurses_layout_paint,
-  qcurses_layout_t *                    pLayout,
-  qcurses_painter_t *                   pPainter
+QPAINTER(
+  qlayout_paint,
+  qlayout_t *                    pLayout,
+  qpainter_t *                   pPainter
 ) {
   int err;
-  qcurses_layout_element_t * pElement;
+  qlayout_element_t * pElement;
 
   // Paint all sub-elements of the layout.
-  pElement = P(pLayout)->pWidgetsFirst;
+  pElement = QP(pLayout)->pWidgetsFirst;
   while (pElement) {
-    err = qcurses_widget_paint(pElement->pWidget, pPainter);
+    err = qwidget_paint(pElement->pWidget, pPainter);
     if (err) {
       return err;
     }
@@ -278,25 +278,25 @@ QCURSES_PAINTER(
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-int qcurses_create_layout (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_layout_format_t               format,
-  qcurses_layout_t **                   pLayout
+int QCURSESCALL qcreate_layout (
+  qalloc_t const *               pAllocator,
+  qlayout_format_t               format,
+  qlayout_t **                   pLayout
 ) {
   int err;
-  qcurses_widget_config_t widgetConfig;
-  qcurses_layout_t * layout;
+  qwidget_config_t widgetConfig;
+  qlayout_t * layout;
 
   // Configure the application as a widget for ease of use.
   widgetConfig.pAllocator     = pAllocator;
-  widgetConfig.publicSize     = sizeof(qcurses_layout_t);
-  widgetConfig.privateSize    = sizeof(QCURSES_PIMPL_STRUCT(qcurses_layout_t));
-  widgetConfig.pfnDestroy     = QCURSES_DESTROY_PTR(qcurses_destroy_layout);
-  widgetConfig.pfnRecalculate = QCURSES_RECALC_PTR(qcurses_layout_recalculate);
-  widgetConfig.pfnPaint       = QCURSES_PAINTER_PTR(qcurses_layout_paint);
+  widgetConfig.publicSize     = sizeof(qlayout_t);
+  widgetConfig.privateSize    = sizeof(QPIMPL_STRUCT(qlayout_t));
+  widgetConfig.pfnDestroy     = QDESTROY_PTR(qdestroy_layout);
+  widgetConfig.pfnRecalculate = QRECALC_PTR(qlayout_recalculate);
+  widgetConfig.pfnPaint       = QPAINTER_PTR(qlayout_paint);
 
   // Allocate the terminal UI application.
-  err = qcurses_create_widget(
+  err = qcreate_widget(
     &widgetConfig,
     &layout
   );
@@ -305,7 +305,7 @@ int qcurses_create_layout (
   }
 
   // Set the format for the layout.
-  P(layout)->layoutFormat = format;
+  QP(layout)->layoutFormat = format;
 
   // Return the application to the caller.
   *pLayout = layout;
@@ -313,45 +313,45 @@ int qcurses_create_layout (
 }
 
 //------------------------------------------------------------------------------
-void qcurses_destroy_layout (
-  qcurses_layout_t *                    pLayout
+void QCURSESCALL qdestroy_layout (
+  qlayout_t *                    pLayout
 ) {
   // TODO: Add destruction logic.
-  qcurses_destroy_widget(pLayout);
+  qdestroy_widget(pLayout);
 }
 
 //------------------------------------------------------------------------------
-qcurses_layout_format_t qcurses_layout_get_format (
-  qcurses_layout_t const *              pLayout
+qlayout_format_t QCURSESCALL qlayout_get_format (
+  qlayout_t const *              pLayout
 ) {
-  return P(pLayout)->layoutFormat;
+  return QP(pLayout)->layoutFormat;
 }
 
 //------------------------------------------------------------------------------
-int qcurses_layout_set_format (
-  qcurses_layout_t const *              pLayout,
-  qcurses_layout_format_t               format
+int QCURSESCALL qlayout_set_format (
+  qlayout_t const *              pLayout,
+  qlayout_format_t               format
 ) {
-  if (P(pLayout)->layoutFormat != format) {
-    qcurses_widget_mark_dirty(pLayout);
-    qcurses_widget_emit(pLayout, onFormat, format);
+  if (QP(pLayout)->layoutFormat != format) {
+    qwidget_mark_dirty(pLayout);
+    qwidget_emit(pLayout, set_format, format);
   }
-  P(pLayout)->layoutFormat = format;
+  QP(pLayout)->layoutFormat = format;
   return 0;
 }
 
 //------------------------------------------------------------------------------
-int __qcurses_layout_add_widget (
-  qcurses_layout_t *                    pLayout,
-  qcurses_widget_t *                    pWidget,
+int QCURSESCALL __qlayout_add_widget (
+  qlayout_t *                    pLayout,
+  qwidget_t *                    pWidget,
   int                                   stretch
 ) {
-  qcurses_layout_element_t * pElement;
+  qlayout_element_t * pElement;
 
   // Allocate the element so that we can attach it.
-  pElement = (qcurses_layout_element_t *)qcurses_allocate(
-    W(pLayout)->pAllocator,
-    sizeof(qcurses_layout_element_t),
+  pElement = (qlayout_element_t *)qallocate(
+    QW(pLayout)->pAllocator,
+    sizeof(qlayout_element_t),
     1
   );
   if (!pElement) {
@@ -365,18 +365,18 @@ int __qcurses_layout_add_widget (
   pElement->pNext = NULL;
 
   // Attach the widget to the layout list.
-  if (!P(pLayout)->pWidgetsFirst) {
-    P(pLayout)->pWidgetsFirst = pElement;
-    P(pLayout)->pWidgetsLast = pElement;
+  if (!QP(pLayout)->pWidgetsFirst) {
+    QP(pLayout)->pWidgetsFirst = pElement;
+    QP(pLayout)->pWidgetsLast = pElement;
   }
   else {
-    pElement->pPrevious = P(pLayout)->pWidgetsLast;
+    pElement->pPrevious = QP(pLayout)->pWidgetsLast;
     pElement->pPrevious->pNext = pElement;
-    P(pLayout)->pWidgetsLast = pElement;
+    QP(pLayout)->pWidgetsLast = pElement;
   }
 
-  ++P(pLayout)->widgetCount;
-  W(pWidget)->pParent = (qcurses_widget_t *)pLayout;
-  qcurses_widget_mark_dirty(pLayout);
+  ++QP(pLayout)->widgetCount;
+  QW(pWidget)->pParent = (qwidget_t *)pLayout;
+  qwidget_mark_dirty(pLayout);
   return 0;
 }

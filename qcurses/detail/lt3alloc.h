@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-
-#ifndef   QCURSES_LT3ALLOC_H
-#define   QCURSES_LT3ALLOC_H
+#ifndef   QLT3ALLOC_H
+#define   QLT3ALLOC_H
 
 #include "../qcurses.h"
 #include <lt3/alloc.h>
@@ -25,14 +24,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-typedef struct qcurses_lt3alloc_t {
+typedef struct qlt3alloc_t {
   lt3_alloc_t                           instance;
-  qcurses_alloc_t const *               pAllocator;
-} qcurses_lt3alloc_t;
+  qalloc_t const *                      pAllocator;
+} qlt3alloc_t;
 
 //------------------------------------------------------------------------------
-static void * qcurses_lt3allocate (
-  qcurses_lt3alloc_t const *            pAllocator,
+static void * qlt3allocate (
+  qlt3alloc_t const *                   pAllocator,
   size_t                                n,
   size_t                                align
 ) {
@@ -40,8 +39,8 @@ static void * qcurses_lt3allocate (
 }
 
 //------------------------------------------------------------------------------
-static void * qcurses_lt3reallocate (
-  qcurses_lt3alloc_t const *            pAllocator,
+static void * qlt3reallocate (
+  qlt3alloc_t const *                   pAllocator,
   void *                                ptr,
   size_t                                n
 ) {
@@ -49,22 +48,22 @@ static void * qcurses_lt3reallocate (
 }
 
 //------------------------------------------------------------------------------
-static void qcurses_lt3free (
-  qcurses_lt3alloc_t const *            pAllocator,
+static void qlt3free (
+  qlt3alloc_t const *                   pAllocator,
   void *                                ptr
 ) {
   pAllocator->pAllocator->pfnFree(pAllocator->pAllocator, ptr);
 }
 
 //------------------------------------------------------------------------------
-static inline void qcurses_lt3alloc_init (
-  qcurses_alloc_t const *               pFrom,
-  qcurses_lt3alloc_t *                  pTo
+static inline void qlt3alloc_init (
+  qalloc_t const *                      pFrom,
+  qlt3alloc_t *                         pTo
 ) {
   pTo->pAllocator = pFrom;
-  pTo->instance.pfnAlloc = (lt3_pfn_alloc)qcurses_lt3allocate;
-  pTo->instance.pfnRealloc = (lt3_pfn_realloc)qcurses_lt3reallocate;
-  pTo->instance.pfnFree = (lt3_pfn_free)qcurses_lt3free;
+  pTo->instance.pfnAlloc = (lt3_pfn_alloc)qlt3allocate;
+  pTo->instance.pfnRealloc = (lt3_pfn_realloc)qlt3reallocate;
+  pTo->instance.pfnFree = (lt3_pfn_free)qlt3free;
 }
 
-#endif // QCURSES_LT3ALLOC_H
+#endif // QLT3ALLOC_H

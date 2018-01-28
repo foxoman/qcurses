@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-#include "array.h"
+#include "qarray.h"
 #include <string.h>
 
 #ifdef    __cplusplus
@@ -26,9 +26,9 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-int __qcurses_array_init  (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_array_t *                     pArray,
+int QCURSESCALL __qarray_init  (
+  qalloc_t const *                      pAllocator,
+  qarray_t *                            pArray,
   size_t                                elementSize,
   uint32_t                              initialCapacity
 ) {
@@ -36,28 +36,28 @@ int __qcurses_array_init  (
   pArray->count = 0;
   pArray->capacity = 0;
   if (initialCapacity != 0) {
-    return __qcurses_array_resize(pAllocator, pArray, elementSize, initialCapacity);
+    return __qarray_resize(pAllocator, pArray, elementSize, initialCapacity);
   }
   return 0;
 }
 
 //------------------------------------------------------------------------------
-void __qcurses_array_deinit (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_array_t *                     pArray
+void QCURSESCALL __qarray_deinit (
+  qalloc_t const *                      pAllocator,
+  qarray_t *                            pArray
 ) {
-  qcurses_free(pAllocator, pArray->pData);
+  qfree(pAllocator, pArray->pData);
 }
 
 //------------------------------------------------------------------------------
-int __qcurses_array_resize (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_array_t *                     pArray,
+int QCURSESCALL __qarray_resize (
+  qalloc_t const *                      pAllocator,
+  qarray_t *                            pArray,
   size_t                                elementSize,
   uint32_t                              capacity
 ) {
   void * ptr;
-  ptr = qcurses_reallocate(pAllocator, pArray->pData, elementSize * capacity);
+  ptr = qreallocate(pAllocator, pArray->pData, elementSize * capacity);
   if (!ptr) {
     return ENOMEM;
   }
@@ -67,9 +67,9 @@ int __qcurses_array_resize (
 }
 
 //------------------------------------------------------------------------------
-int __qcurses_array_grow (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_array_t *                     pArray,
+int QCURSESCALL __qarray_grow (
+  qalloc_t const *                      pAllocator,
+  qarray_t *                            pArray,
   uint32_t                              elementSize
 ) {
   uint32_t newCapacity;
@@ -88,19 +88,19 @@ int __qcurses_array_grow (
     }
   }
 
-  return __qcurses_array_resize(pAllocator, pArray, elementSize, newCapacity);
+  return __qarray_resize(pAllocator, pArray, elementSize, newCapacity);
 }
 
 //------------------------------------------------------------------------------
-int __qcurses_array_push (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_array_t *                     pArray,
+int QCURSESCALL __qarray_push (
+  qalloc_t const *                      pAllocator,
+  qarray_t *                            pArray,
   uint32_t                              elementSize,
   void const *                          pData
 ) {
   int err;
-  if (qcurses_array_full(pArray)) {
-    err = __qcurses_array_grow(pAllocator, pArray, elementSize);
+  if (qarray_full(pArray)) {
+    err = __qarray_grow(pAllocator, pArray, elementSize);
     if (err) {
       return err;
     }

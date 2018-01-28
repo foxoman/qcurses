@@ -17,8 +17,8 @@
  ******************************************************************************/
 
 #include <qcurses/qcurses.h>
-#include <qcurses/application.h>
-#include <qcurses/label.h>
+#include <qcurses/qapplication.h>
+#include <qcurses/qlabel.h>
 #include <string.h>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,98 +30,98 @@
 #define APPLICATION_VERSION     "v1.0"
 #define APPLICATION_DESCRIPTION "A simple application using a single label widget."
 
-#define QCURSES_CHECK(s) do { int err = s; if (err) return err; } while (0)
+#define QCHECK(s) do { int err = s; if (err) return err; } while (0)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Application Callbacks
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-QCURSES_SLOT(
+QSLOT(
   application_quit,
-  qcurses_application_t *               pThis,
-  qcurses_keycode_t                     code,
+  qapplication_t *                      pThis,
+  qkey_t                                code,
   int                                   value
 ) {
   (void)value;
 
   // If the user presses "Q", we should prepare to quit.
-  if (code == QCURSES_KEYCODE_Q) {
-    return qcurses_application_quit(pThis);
+  if (code == QKEY_Q) {
+    return qapplication_quit(pThis, 0);
   }
 
   return 0;
 }
 
 //------------------------------------------------------------------------------
-QCURSES_SLOT(
+QSLOT(
   label_alignment,
-  qcurses_label_t *                     pThis,
-  qcurses_keycode_t                     code,
+  qlabel_t *                            pThis,
+  qkey_t                                code,
   int                                   value
 ) {
-  qcurses_align_t origAlign;
-  qcurses_align_t newAlign;
+  qalign_t origAlign;
+  qalign_t newAlign;
   (void)value;
 
   // Grab the alignment in case we use it.
-  origAlign = qcurses_label_get_align(pThis);
+  origAlign = qlabel_get_align(pThis);
   newAlign = origAlign;
 
   // Alter the alignment of the label via WASD.
   switch (code) {
 
-    case QCURSES_KEYCODE_W: {
-      newAlign &= ~QCURSES_ALIGN_VERTICAL_MASK;
-      switch (origAlign & QCURSES_ALIGN_VERTICAL_MASK) {
-        case QCURSES_ALIGN_TOP_BIT:
-        case QCURSES_ALIGN_MIDDLE_BIT:
-          newAlign |= QCURSES_ALIGN_TOP_BIT;
+    case QKEY_W: {
+      newAlign &= ~QALIGN_VERTICAL_MASK;
+      switch (origAlign & QALIGN_VERTICAL_MASK) {
+        case QALIGN_TOP_BIT:
+        case QALIGN_MIDDLE_BIT:
+          newAlign |= QALIGN_TOP_BIT;
           break;
-        case QCURSES_ALIGN_BOTTOM_BIT:
-          newAlign |= QCURSES_ALIGN_MIDDLE_BIT;
-          break;
-      }
-    }
-    break;
-
-    case QCURSES_KEYCODE_S: {
-      newAlign &= ~QCURSES_ALIGN_VERTICAL_MASK;
-      switch (origAlign & QCURSES_ALIGN_VERTICAL_MASK) {
-        case QCURSES_ALIGN_BOTTOM_BIT:
-        case QCURSES_ALIGN_MIDDLE_BIT:
-          newAlign |= QCURSES_ALIGN_BOTTOM_BIT;
-          break;
-        case QCURSES_ALIGN_TOP_BIT:
-          newAlign |= QCURSES_ALIGN_MIDDLE_BIT;
+        case QALIGN_BOTTOM_BIT:
+          newAlign |= QALIGN_MIDDLE_BIT;
           break;
       }
     }
     break;
 
-    case QCURSES_KEYCODE_A: {
-      newAlign &= ~QCURSES_ALIGN_HORIZONTAL_MASK;
-      switch (origAlign & QCURSES_ALIGN_HORIZONTAL_MASK) {
-        case QCURSES_ALIGN_LEFT_BIT:
-        case QCURSES_ALIGN_CENTER_BIT:
-          newAlign |= QCURSES_ALIGN_LEFT_BIT;
+    case QKEY_S: {
+      newAlign &= ~QALIGN_VERTICAL_MASK;
+      switch (origAlign & QALIGN_VERTICAL_MASK) {
+        case QALIGN_BOTTOM_BIT:
+        case QALIGN_MIDDLE_BIT:
+          newAlign |= QALIGN_BOTTOM_BIT;
           break;
-        case QCURSES_ALIGN_RIGHT_BIT:
-          newAlign |= QCURSES_ALIGN_CENTER_BIT;
+        case QALIGN_TOP_BIT:
+          newAlign |= QALIGN_MIDDLE_BIT;
           break;
       }
     }
     break;
 
-    case QCURSES_KEYCODE_D: {
-      newAlign &= ~QCURSES_ALIGN_HORIZONTAL_MASK;
-      switch (origAlign & QCURSES_ALIGN_HORIZONTAL_MASK) {
-        case QCURSES_ALIGN_RIGHT_BIT:
-        case QCURSES_ALIGN_CENTER_BIT:
-          newAlign |= QCURSES_ALIGN_RIGHT_BIT;
+    case QKEY_A: {
+      newAlign &= ~QALIGN_HORIZONTAL_MASK;
+      switch (origAlign & QALIGN_HORIZONTAL_MASK) {
+        case QALIGN_LEFT_BIT:
+        case QALIGN_CENTER_BIT:
+          newAlign |= QALIGN_LEFT_BIT;
           break;
-        case QCURSES_ALIGN_LEFT_BIT:
-          newAlign |= QCURSES_ALIGN_CENTER_BIT;
+        case QALIGN_RIGHT_BIT:
+          newAlign |= QALIGN_CENTER_BIT;
+          break;
+      }
+    }
+    break;
+
+    case QKEY_D: {
+      newAlign &= ~QALIGN_HORIZONTAL_MASK;
+      switch (origAlign & QALIGN_HORIZONTAL_MASK) {
+        case QALIGN_RIGHT_BIT:
+        case QALIGN_CENTER_BIT:
+          newAlign |= QALIGN_RIGHT_BIT;
+          break;
+        case QALIGN_LEFT_BIT:
+          newAlign |= QALIGN_CENTER_BIT;
           break;
       }
     }
@@ -132,9 +132,9 @@ QCURSES_SLOT(
   }
 
   // Mark the label as dirty.
-  qcurses_widget_mark_dirty(pThis);
+  qwidget_mark_dirty(pThis);
   if (newAlign != origAlign) {
-    return qcurses_label_set_align(pThis, newAlign);
+    return qlabel_set_align(pThis, newAlign);
   }
 
   return 0;
@@ -146,25 +146,25 @@ QCURSES_SLOT(
 
 //------------------------------------------------------------------------------
 static int main_prepare_main_widget (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_application_t *               pApplication
+  qalloc_t const *                      pAllocator,
+  qapplication_t *                      pApplication
 ) {
-  qcurses_label_t * label;
-  QCURSES_CHECK(qcurses_create_label(pAllocator, &label));
-  QCURSES_CHECK(qcurses_label_set_align(label, QCURSES_ALIGN_CENTER_BIT | QCURSES_ALIGN_MIDDLE_BIT));
-  QCURSES_CHECK(qcurses_label_set_text_k(label, "Use W, A, S, D to position the text.\nPress Q to quit."));
-  QCURSES_CHECK(qcurses_widget_connect(pApplication, onKey, label, label_alignment));
-  QCURSES_CHECK(qcurses_application_set_main_widget(pApplication, label));
+  qlabel_t * label;
+  QCHECK(qcreate_label(pAllocator, &label));
+  QCHECK(qlabel_set_align(label, QALIGN_CENTER_BIT | QALIGN_MIDDLE_BIT));
+  QCHECK(qlabel_set_text_k(label, "Use W, A, S, D to position the text.\nPress Q to quit."));
+  QCHECK(qwidget_connect(pApplication, on_key, label, label_alignment));
+  QCHECK(qapplication_set_main_widget(pApplication, label));
   return 0;
 }
 
 //------------------------------------------------------------------------------
 static int main_prepare_application (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_application_t *               pApplication
+  qalloc_t const *                      pAllocator,
+  qapplication_t *                      pApplication
 ) {
-  QCURSES_CHECK(qcurses_widget_connect(pApplication, onKey, pApplication, application_quit));
-  QCURSES_CHECK(main_prepare_main_widget(pAllocator, pApplication));
+  QCHECK(qwidget_connect(pApplication, on_key, pApplication, application_quit));
+  QCHECK(main_prepare_main_widget(pAllocator, pApplication));
   return 0;
 }
 
@@ -174,10 +174,10 @@ static int main_prepare_application (
 
 //------------------------------------------------------------------------------
 int main (int argc, char const * argv[]) {
-  qcurses_application_t* app;
+  qapplication_t* app;
 
   // Prepare the application for initialization.
-  qcurses_application_info_t appInfo;
+  qapplication_info_t appInfo;
   memset(&appInfo, 0, sizeof(appInfo));
   appInfo.pAllocator        = NULL;
   appInfo.pApplicationName  = APPLICATION_NAME;
@@ -186,10 +186,10 @@ int main (int argc, char const * argv[]) {
   appInfo.pDescription      = APPLICATION_DESCRIPTION;
 
   // Run the application by creating, preparing, running, and destroying.
-  QCURSES_CHECK(qcurses_create_application(&appInfo, &app));
-  QCURSES_CHECK(main_prepare_application(appInfo.pAllocator, app));
-  QCURSES_CHECK(qcurses_application_run(app));
-  qcurses_destroy_application(app);
+  QCHECK(qcreate_application(&appInfo, &app));
+  QCHECK(main_prepare_application(appInfo.pAllocator, app));
+  QCHECK(qapplication_run(app));
+  qdestroy_application(app);
 
   return 0;
 }

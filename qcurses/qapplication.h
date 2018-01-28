@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-#ifndef   QCURSES_APPLICATION_H
-#define   QCURSES_APPLICATION_H
+#ifndef   QAPPLICATION_H
+#define   QAPPLICATION_H
 
 #include "qcurses.h"
-#include "widget.h"
-#include "menu_bar.h"
-#include "status_bar.h"
+#include "qwidget.h"
+#include "qmenu_bar.h"
+#include "qstatus_bar.h"
 
 #ifdef    __cplusplus
 extern "C" {
@@ -30,8 +30,8 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-struct qcurses_application_info_t {
-  qcurses_alloc_t const *               pAllocator;
+struct qapplication_info_t {
+  qalloc_t const *                      pAllocator;
   char const *                          pApplicationName;
   char const *                          pDescription;
   char const *                          pVersion;
@@ -43,81 +43,83 @@ struct qcurses_application_info_t {
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-QCURSES_WIDGET_BEGIN(qcurses_application_t, qcurses_widget_t)
-  QCURSES_WIDGET_SIGNALS(
-    QCURSES_SIGNAL(onKey,               qcurses_keycode_t code, int value);
-    QCURSES_SIGNAL(onResize,            qcurses_bounds_t const *);
-    QCURSES_SIGNAL(onMouse,             qcurses_coord_t const *, qcurses_mouse_t buttons);
-  )
-QCURSES_WIDGET_END
+QWIDGET_BEGIN(qapplication_t)
+  QWIDGET_SIGNALS_BEGIN
+    QSIGNAL(quit, int code);
+    QSIGNAL(resize, qbounds_t const * bounds);
+    QSIGNAL(on_key, qkey_t code, int value);
+    QSIGNAL(on_mouse, qcoord_t const * coord, qmouse_t state);
+  QWIDGET_SIGNALS_END
+QWIDGET_END
 
 ////////////////////////////////////////////////////////////////////////////////
 // Application Functions
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-int qcurses_create_application (
-  qcurses_application_info_t const *    pCreateInfo,
-  qcurses_application_t **              pApplication
+int QCURSESCALL qcreate_application (
+  qapplication_info_t const *           pCreateInfo,
+  qapplication_t **                     pApplication
 );
 
 //------------------------------------------------------------------------------
-void qcurses_destroy_application (
-  qcurses_application_t *               pApplication
+void QCURSESCALL qdestroy_application (
+  qapplication_t *                      pApplication
 );
 
 //------------------------------------------------------------------------------
-qcurses_widget_t * qcurses_application_get_main_widget (
-  qcurses_application_t *               pApplication
+qwidget_t * QCURSESCALL qapplication_get_main_widget (
+  qapplication_t *                      pApplication
 );
 
 //------------------------------------------------------------------------------
-int __qcurses_application_set_main_widget (
-  qcurses_application_t *               pApplication,
-  qcurses_widget_t *                    pWidget
+int QCURSESCALL __qapplication_set_main_widget (
+  qapplication_t *                      pApplication,
+  qwidget_t *                           pWidget
 );
 
 //------------------------------------------------------------------------------
-#define qcurses_application_set_main_widget(pApplication, pWidget)              \
-  __qcurses_application_set_main_widget(                                        \
+#define qapplication_set_main_widget(pApplication, pWidget)                     \
+  __qapplication_set_main_widget(                                               \
     pApplication,                                                               \
-    (qcurses_widget_t *)pWidget                                                 \
+    ((qwidget_t *)pWidget)                                                      \
   )
 
 //------------------------------------------------------------------------------
-qcurses_menu_bar_t * qcurses_application_get_menu_bar (
-  qcurses_application_t *               pApplication
+qmenu_bar_t * QCURSESCALL qapplication_get_menu_bar (
+  qapplication_t *                      pApplication
 );
 
 //------------------------------------------------------------------------------
-int qcurses_application_set_menu_bar (
-  qcurses_application_t *               pApplication,
-  qcurses_menu_bar_t *                  pMenuBar
+int QCURSESCALL qapplication_set_menu_bar (
+  qapplication_t *                      pApplication,
+  qmenu_bar_t *                         pMenuBar
 );
 
 //------------------------------------------------------------------------------
-qcurses_status_bar_t * qcurses_application_get_status_bar (
-  qcurses_application_t *               pApplication
+qstatus_bar_t * QCURSESCALL qapplication_get_status_bar (
+  qapplication_t *                      pApplication
 );
 
 //------------------------------------------------------------------------------
-int qcurses_application_set_status_bar (
-  qcurses_application_t *               pApplication,
-  qcurses_status_bar_t *                pStatusBar
+int QCURSESCALL qapplication_set_status_bar (
+  qapplication_t *                      pApplication,
+  qstatus_bar_t *                       pStatusBar
 );
 
 //------------------------------------------------------------------------------
-int qcurses_application_run (
-  qcurses_application_t *               pApplication
+int QCURSESCALL qapplication_run (
+  qapplication_t *                      pApplication
 );
 
 //------------------------------------------------------------------------------
-int qcurses_application_quit (
-  qcurses_application_t *               pApplication
+int QCURSESCALL qapplication_quit (
+  qapplication_t *                      pApplication,
+  int                                   code
 );
 
 #ifdef    __cplusplus
 }
 #endif // __cplusplus
 
-#endif // QCURSES_APPLICATION_H
+#endif // QAPPLICATION_H

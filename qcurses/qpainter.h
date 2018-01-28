@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-#ifndef   QCURSES_PAINTER_H
-#define   QCURSES_PAINTER_H
+#ifndef   QPAINTER_H
+#define   QPAINTER_H
 
-#include "fwdqcurses.h"
+#include "qcurses.h"
 
 #ifdef    __cplusplus
 extern "C" {
@@ -27,31 +27,31 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-int qcurses_painter_clear (
-  qcurses_painter_t *                   pPainter,
-  qcurses_region_t const *              pRegion
+int QCURSESCALL qpainter_clear (
+  qpainter_t *                          pPainter,
+  qregion_t const *                     pRegion
 );
 
 //------------------------------------------------------------------------------
-int qcurses_painter_paint (
-  qcurses_painter_t *                   pPainter,
-  qcurses_coord_t const *               pOrigin,
+int QCURSESCALL qpainter_paint (
+  qpainter_t *                          pPainter,
+  qcoord_t const *                      pOrigin,
   char const *                          pData,
   size_t                                n
 );
 
 //------------------------------------------------------------------------------
-int qcurses_painter_insstr (
-  qcurses_painter_t *                   pPainter,
-  qcurses_coord_t const *               pOrigin,
+int QCURSESCALL qpainter_insstr (
+  qpainter_t *                          pPainter,
+  qcoord_t const *                      pOrigin,
   char const *                          pData,
   size_t                                n
 );
 
 //------------------------------------------------------------------------------
-int qcurses_painter_addstr (
-  qcurses_painter_t *                   pPainter,
-  qcurses_coord_t const *               pOrigin,
+int QCURSESCALL qpainter_addstr (
+  qpainter_t *                          pPainter,
+  qcoord_t const *                      pOrigin,
   char const *                          pData,
   size_t                                n
 );
@@ -60,4 +60,4 @@ int qcurses_painter_addstr (
 }
 #endif // __cplusplus
 
-#endif // QCURSES_PAINTER_H
+#endif // QPAINTER_H

@@ -14,9 +14,9 @@
  * limitations under the License.
  ******************************************************************************/
 
-#include "label.h"
-#include "painter.h"
-#include "details/lt3alloc.h"
+#include "qlabel.h"
+#include "qpainter.h"
+#include "detail/lt3alloc.h"
 #include <lt3/alloc.h>
 #include <lt3/string.h>
 
@@ -30,12 +30,12 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-struct QCURSES_PIMPL_NAME(qcurses_label_t) {
-  qcurses_lt3alloc_t                    allocator;
-  qcurses_align_t                       alignment;
+struct QPIMPL_NAME(qlabel_t) {
+  qlt3alloc_t                           allocator;
+  qalign_t                              alignment;
   lt3_string_t                          contents;
   size_t                                maxLineLength;
-  QCURSES_DEFINE_ARRAY(size_t)          lines;
+  QDEFINE_ARRAY(size_t)                 lines;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,35 +43,35 @@ struct QCURSES_PIMPL_NAME(qcurses_label_t) {
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-QCURSES_RECALC(
-  qcurses_label_recalculate,
-  qcurses_label_t *                     pLabel,
-  qcurses_region_t const *              pRegion
+QRECALC(
+  qlabel_recalculate,
+  qlabel_t *                            pLabel,
+  qregion_t const *                     pRegion
 ) {
 
   // If the actual region has not changed, we can simply ignore the recalculate step.
   // This means a recalculate was requested, but that none of the math would change.
-  if (qcurses_region_equal(&W(pLabel)->outerRegion, pRegion)) {
+  if (qregion_equal(&QW(pLabel)->outerRegion, pRegion)) {
     return 0;
   }
 
   // TODO: Handle calculations for word wrapping, which can dynamically change the content size.
   //       For now, just assume no dynamic content size changes based on print region.
-  qcurses_widget_mark_state(pLabel, QCURSES_STATE_DIRTY_BIT);
-  W(pLabel)->contentBounds  = qcurses_bounds(
-    QCURSES_MIN(P(pLabel)->lines.count, pRegion->bounds.rows),
-    P(pLabel)->maxLineLength
+  qwidget_mark_state(pLabel, QSTATE_DIRTY_BIT);
+  QW(pLabel)->contentBounds  = qbounds(
+    QMIN(QP(pLabel)->lines.count, pRegion->bounds.rows),
+    QP(pLabel)->maxLineLength
   );
-  W(pLabel)->outerRegion    = *pRegion;
+  QW(pLabel)->outerRegion    = *pRegion;
 
   return 0;
 }
 
 //------------------------------------------------------------------------------
-QCURSES_PAINTER(
-  qcurses_label_paint,
-  qcurses_label_t *                     pLabel,
-  qcurses_painter_t *                   pPainter
+QPAINTER(
+  qlabel_paint,
+  qlabel_t *                            pLabel,
+  qpainter_t *                          pPainter
 ) {
   int err;
   uint32_t idx;
@@ -83,48 +83,48 @@ QCURSES_PAINTER(
   size_t rowOffset;
   size_t rowCount;
   char const * pString;
-  qcurses_coord_t printCoord;
+  qcoord_t printCoord;
 
   // Calculate the inner content region (union of contentBounds and outerRegion)
   // Calculate the row/column offset based on content length and alignment.
   // Note that this is for the entire printable region, not for an individual line.
   {
-    W(pLabel)->contentBounds  = qcurses_bounds(
-      P(pLabel)->lines.count,
-      P(pLabel)->maxLineLength
+    QW(pLabel)->contentBounds  = qbounds(
+      QP(pLabel)->lines.count,
+      QP(pLabel)->maxLineLength
     );
-    W(pLabel)->innerRegion.coord = W(pLabel)->outerRegion.coord;
-    W(pLabel)->innerRegion.bounds = qcurses_bounds(
-      QCURSES_MIN(W(pLabel)->contentBounds.rows, W(pLabel)->outerRegion.bounds.rows),
-      QCURSES_MIN(W(pLabel)->contentBounds.columns, W(pLabel)->outerRegion.bounds.columns)
+    QW(pLabel)->innerRegion.coord = QW(pLabel)->outerRegion.coord;
+    QW(pLabel)->innerRegion.bounds = qbounds(
+      QMIN(QW(pLabel)->contentBounds.rows, QW(pLabel)->outerRegion.bounds.rows),
+      QMIN(QW(pLabel)->contentBounds.columns, QW(pLabel)->outerRegion.bounds.columns)
     );
-    switch (P(pLabel)->alignment & QCURSES_ALIGN_HORIZONTAL_MASK) {
-      case QCURSES_ALIGN_LEFT_BIT:
-        W(pLabel)->innerRegion.coord.column += 0;
+    switch (QP(pLabel)->alignment & QALIGN_HORIZONTAL_MASK) {
+      case QALIGN_LEFT_BIT:
+        QW(pLabel)->innerRegion.coord.column += 0;
         break;
 
-      case QCURSES_ALIGN_CENTER_BIT:
-        W(pLabel)->innerRegion.coord.column += (W(pLabel)->outerRegion.bounds.columns - W(pLabel)->innerRegion.bounds.columns) / 2;
+      case QALIGN_CENTER_BIT:
+        QW(pLabel)->innerRegion.coord.column += (QW(pLabel)->outerRegion.bounds.columns - QW(pLabel)->innerRegion.bounds.columns) / 2;
         break;
 
-      case QCURSES_ALIGN_RIGHT_BIT:
-        W(pLabel)->innerRegion.coord.column += W(pLabel)->outerRegion.bounds.columns - W(pLabel)->innerRegion.bounds.columns;
+      case QALIGN_RIGHT_BIT:
+        QW(pLabel)->innerRegion.coord.column += QW(pLabel)->outerRegion.bounds.columns - QW(pLabel)->innerRegion.bounds.columns;
         break;
 
       default:
         return EFAULT;
     }
-    switch (P(pLabel)->alignment & QCURSES_ALIGN_VERTICAL_MASK) {
-      case QCURSES_ALIGN_TOP_BIT:
-        W(pLabel)->innerRegion.coord.row += 0;
+    switch (QP(pLabel)->alignment & QALIGN_VERTICAL_MASK) {
+      case QALIGN_TOP_BIT:
+        QW(pLabel)->innerRegion.coord.row += 0;
         break;
 
-      case QCURSES_ALIGN_MIDDLE_BIT:
-        W(pLabel)->innerRegion.coord.row += (W(pLabel)->outerRegion.bounds.rows - W(pLabel)->innerRegion.bounds.rows) / 2;
+      case QALIGN_MIDDLE_BIT:
+        QW(pLabel)->innerRegion.coord.row += (QW(pLabel)->outerRegion.bounds.rows - QW(pLabel)->innerRegion.bounds.rows) / 2;
         break;
 
-      case QCURSES_ALIGN_BOTTOM_BIT:
-        W(pLabel)->innerRegion.coord.row += W(pLabel)->outerRegion.bounds.rows - W(pLabel)->innerRegion.bounds.rows;
+      case QALIGN_BOTTOM_BIT:
+        QW(pLabel)->innerRegion.coord.row += QW(pLabel)->outerRegion.bounds.rows - QW(pLabel)->innerRegion.bounds.rows;
         break;
 
       default:
@@ -133,9 +133,9 @@ QCURSES_PAINTER(
   }
 
   // Clear the outer region.
-  err = qcurses_painter_clear(
+  err = qpainter_clear(
     pPainter,
-    &W(pLabel)->outerRegion
+    &QW(pLabel)->outerRegion
   );
   if (err) {
     return err;
@@ -143,36 +143,36 @@ QCURSES_PAINTER(
 
   // Calculate the number of lines that will be cut off due to a small outerRegion.
   // We should utilize the vertical alignment mask to select where to cut content from.
-  switch (P(pLabel)->alignment & QCURSES_ALIGN_VERTICAL_MASK) {
-    case QCURSES_ALIGN_TOP_BIT:
+  switch (QP(pLabel)->alignment & QALIGN_VERTICAL_MASK) {
+    case QALIGN_TOP_BIT:
       rowOffset = 0;
       lineOffset = 0;
-      rowCount = QCURSES_MIN(W(pLabel)->innerRegion.bounds.rows, P(pLabel)->lines.count);
+      rowCount = QMIN(QW(pLabel)->innerRegion.bounds.rows, QP(pLabel)->lines.count);
       break;
 
-    case QCURSES_ALIGN_MIDDLE_BIT:
-      if (W(pLabel)->innerRegion.bounds.rows < P(pLabel)->lines.count) {
+    case QALIGN_MIDDLE_BIT:
+      if (QW(pLabel)->innerRegion.bounds.rows < QP(pLabel)->lines.count) {
         rowOffset = 0;
-        lineOffset = (P(pLabel)->lines.count - W(pLabel)->innerRegion.bounds.rows) / 2;
-        rowCount = W(pLabel)->innerRegion.bounds.rows;
+        lineOffset = (QP(pLabel)->lines.count - QW(pLabel)->innerRegion.bounds.rows) / 2;
+        rowCount = QW(pLabel)->innerRegion.bounds.rows;
       }
       else {
-        rowOffset = (W(pLabel)->innerRegion.bounds.rows - P(pLabel)->lines.count) / 2;
+        rowOffset = (QW(pLabel)->innerRegion.bounds.rows - QP(pLabel)->lines.count) / 2;
         lineOffset = 0;
-        rowCount = P(pLabel)->lines.count;
+        rowCount = QP(pLabel)->lines.count;
       }
       break;
 
-    case QCURSES_ALIGN_BOTTOM_BIT:
-      if (W(pLabel)->innerRegion.bounds.rows < P(pLabel)->lines.count) {
+    case QALIGN_BOTTOM_BIT:
+      if (QW(pLabel)->innerRegion.bounds.rows < QP(pLabel)->lines.count) {
         rowOffset = 0;
-        lineOffset = P(pLabel)->lines.count - W(pLabel)->innerRegion.bounds.rows;
-        rowCount = W(pLabel)->innerRegion.bounds.rows;
+        lineOffset = QP(pLabel)->lines.count - QW(pLabel)->innerRegion.bounds.rows;
+        rowCount = QW(pLabel)->innerRegion.bounds.rows;
       }
       else {
-        rowOffset = W(pLabel)->innerRegion.bounds.rows - P(pLabel)->lines.count;
+        rowOffset = QW(pLabel)->innerRegion.bounds.rows - QP(pLabel)->lines.count;
         lineOffset = 0;
-        rowCount = P(pLabel)->lines.count;
+        rowCount = QP(pLabel)->lines.count;
       }
       break;
 
@@ -181,40 +181,40 @@ QCURSES_PAINTER(
   }
 
   // Print each of the lines
-  pString = lt3_string_cstr(&P(pLabel)->contents);
+  pString = lt3_string_cstr(&QP(pLabel)->contents);
   for (idx = 0; idx < rowCount; ++idx) {
 
     // Grab the current line length (excluding the newline).
     // Using this, we will calculate the printedLength which is visible lineLength.
-    lineLength = P(pLabel)->lines.pData[idx + lineOffset];
-    printedLength = QCURSES_MIN(lineLength, W(pLabel)->innerRegion.bounds.columns);
+    lineLength = QP(pLabel)->lines.pData[idx + lineOffset];
+    printedLength = QMIN(lineLength, QW(pLabel)->innerRegion.bounds.columns);
 
     // If the printedLength is smaller than the lineLength, we have to cut some content.
     // We should utilize the horizontal alignment mask to either cut or pad content.
-    switch (P(pLabel)->alignment & QCURSES_ALIGN_HORIZONTAL_MASK) {
-      case QCURSES_ALIGN_LEFT_BIT:
+    switch (QP(pLabel)->alignment & QALIGN_HORIZONTAL_MASK) {
+      case QALIGN_LEFT_BIT:
         columnOffset = 0;
         stringOffset = 0;
         break;
 
-      case QCURSES_ALIGN_CENTER_BIT:
+      case QALIGN_CENTER_BIT:
         if (printedLength < lineLength) {
           columnOffset = 0;
           stringOffset = (lineLength - printedLength) / 2;
         }
         else {
-          columnOffset = (W(pLabel)->innerRegion.bounds.columns - lineLength) / 2;
+          columnOffset = (QW(pLabel)->innerRegion.bounds.columns - lineLength) / 2;
           stringOffset = 0;
         }
         break;
 
-      case QCURSES_ALIGN_RIGHT_BIT:
+      case QALIGN_RIGHT_BIT:
         if (printedLength < lineLength) {
           columnOffset = 0;
           stringOffset = (lineLength - printedLength);
         }
         else {
-          columnOffset = (W(pLabel)->innerRegion.bounds.columns - lineLength);
+          columnOffset = (QW(pLabel)->innerRegion.bounds.columns - lineLength);
           stringOffset = 0;
         }
         break;
@@ -225,11 +225,11 @@ QCURSES_PAINTER(
 
     // Move to the ideal innerRegion offset and print the string.
     // Offset the pString pointer by the full lineLength (+1 for newline) for next line.
-    printCoord = qcurses_coord(
-      W(pLabel)->innerRegion.coord.column + columnOffset,
-      W(pLabel)->innerRegion.coord.row + rowOffset + idx
+    printCoord = qcoord(
+      QW(pLabel)->innerRegion.coord.column + columnOffset,
+      QW(pLabel)->innerRegion.coord.row + rowOffset + idx
     );
-    err = qcurses_painter_paint(
+    err = qpainter_paint(
       pPainter,
       &printCoord,
       pString + stringOffset,
@@ -242,29 +242,29 @@ QCURSES_PAINTER(
     pString += lineLength + 1;
   }
 
-  qcurses_widget_unmark_dirty(pLabel);
+  qwidget_unmark_dirty(pLabel);
   return 0;
 }
 
 //------------------------------------------------------------------------------
-int qcurses_create_label (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_label_t **                    pLabel
+int QCURSESCALL qcreate_label (
+  qalloc_t const *                      pAllocator,
+  qlabel_t **                           pLabel
 ) {
   int err;
-  qcurses_widget_config_t widgetConfig;
-  qcurses_label_t * label;
+  qwidget_config_t widgetConfig;
+  qlabel_t * label;
 
   // Configure the application as a widget for ease of use.
   widgetConfig.pAllocator     = pAllocator;
-  widgetConfig.publicSize     = sizeof(qcurses_label_t);
-  widgetConfig.privateSize    = sizeof(QCURSES_PIMPL_STRUCT(qcurses_label_t));
-  widgetConfig.pfnDestroy     = QCURSES_DESTROY_PTR(qcurses_destroy_label);
-  widgetConfig.pfnRecalculate = QCURSES_RECALC_PTR(qcurses_label_recalculate);
-  widgetConfig.pfnPaint       = QCURSES_PAINTER_PTR(qcurses_label_paint);
+  widgetConfig.publicSize     = sizeof(qlabel_t);
+  widgetConfig.privateSize    = sizeof(QPIMPL_STRUCT(qlabel_t));
+  widgetConfig.pfnDestroy     = QDESTROY_PTR(qdestroy_label);
+  widgetConfig.pfnRecalculate = QRECALC_PTR(qlabel_recalculate);
+  widgetConfig.pfnPaint       = QPAINTER_PTR(qlabel_paint);
 
   // Allocate the terminal UI application.
-  err = qcurses_create_widget(
+  err = qcreate_widget(
     &widgetConfig,
     &label
   );
@@ -273,9 +273,9 @@ int qcurses_create_label (
   }
 
   // Grab the application private implementation pointer.
-  P(label)->alignment = QCURSES_ALIGN_MIDDLE_BIT | QCURSES_ALIGN_CENTER_BIT;
-  qcurses_lt3alloc_init(W(label)->pAllocator, &P(label)->allocator);
-  lt3_string_init(&P(label)->contents);
+  QP(label)->alignment = QALIGN_MIDDLE_BIT | QALIGN_CENTER_BIT;
+  qlt3alloc_init(QW(label)->pAllocator, &QP(label)->allocator);
+  lt3_string_init(&QP(label)->contents);
 
   // Return the application to the caller.
   *pLabel = label;
@@ -283,38 +283,39 @@ int qcurses_create_label (
 }
 
 //------------------------------------------------------------------------------
-void qcurses_destroy_label (
-  qcurses_label_t *                     pLabel
+void QCURSESCALL qdestroy_label (
+  qlabel_t *                            pLabel
 ) {
-  lt3_string_deinit(&P(pLabel)->allocator.instance, &P(pLabel)->contents);
-  qcurses_destroy_widget(pLabel);
+  lt3_string_deinit(&QP(pLabel)->allocator.instance, &QP(pLabel)->contents);
+  qdestroy_widget(pLabel);
 }
 
 //------------------------------------------------------------------------------
-int qcurses_label_set_align (
-  qcurses_label_t *                     pLabel,
-  qcurses_align_t                       alignment
+int QCURSESCALL qlabel_set_align (
+  qlabel_t *                            pLabel,
+  qalign_t                              alignment
 ) {
-  if (P(pLabel)->alignment != alignment) {
-    P(pLabel)->alignment = alignment;
-    qcurses_widget_mark_dirty(pLabel);
+  if (QP(pLabel)->alignment != alignment) {
+    QP(pLabel)->alignment = alignment;
+    qwidget_mark_dirty(pLabel);
   }
+  qwidget_emit(pLabel, set_align, alignment);
   return 0;
 }
 
 //------------------------------------------------------------------------------
-qcurses_align_t qcurses_label_get_align (
-  qcurses_label_t *                     pLabel
+qalign_t QCURSESCALL qlabel_get_align (
+  qlabel_t *                            pLabel
 ) {
-  return P(pLabel)->alignment;
+  return QP(pLabel)->alignment;
 }
 
 //------------------------------------------------------------------------------
-int qcurses_label_set_text (
-  qcurses_label_t *                     pLabel,
+int QCURSESCALL qlabel_set_text (
+  qlabel_t *                            pLabel,
   char const *                          text
 ) {
-  return qcurses_label_set_text_n(
+  return qlabel_set_text_n(
     pLabel,
     text,
     strlen(text)
@@ -322,8 +323,8 @@ int qcurses_label_set_text (
 }
 
 //------------------------------------------------------------------------------
-int qcurses_label_set_text_n (
-  qcurses_label_t *                     pLabel,
+int QCURSESCALL qlabel_set_text_n (
+  qlabel_t *                            pLabel,
   char const *                          text,
   size_t                                n
 ) {
@@ -337,11 +338,11 @@ int qcurses_label_set_text_n (
 
   // We will be using the string a lot here, so grab a pointer.
   // Mostly this is just for code cleanliness - makes things simpler.
-  pString = &P(pLabel)->contents;
+  pString = &QP(pLabel)->contents;
 
   // Attempt to set the string inside the label.
   err = lt3_string_assign_cstr_n(
-    &P(pLabel)->allocator.instance,
+    &QP(pLabel)->allocator.instance,
     pString,
     text,
     n
@@ -354,8 +355,7 @@ int qcurses_label_set_text_n (
   // In this case, we want to avoid constantly grabbing the string pointer.
   // There is some cost to this, since the string can be either embedded or external.
   pData = lt3_string_cstr(pString);
-
-  qcurses_array_clear(&P(pLabel)->lines);
+  qarray_clear(&QP(pLabel)->lines);
 
   // Construct the string views into the raw data as relative offsets.
   // These are the places where a newline occurs so we can calculate alignment later.
@@ -366,7 +366,7 @@ int qcurses_label_set_text_n (
       if (lineLength > maxLineLength) {
         maxLineLength = lineLength;
       }
-      err = qcurses_array_push(W(pLabel)->pAllocator, &P(pLabel)->lines, lineLength);
+      err = qarray_push(QW(pLabel)->pAllocator, &QP(pLabel)->lines, lineLength);
       if (err) {
         return err;
       }
@@ -378,17 +378,18 @@ int qcurses_label_set_text_n (
     if (lineLength > maxLineLength) {
       maxLineLength = lineLength;
     }
-    err = qcurses_array_push(W(pLabel)->pAllocator, &P(pLabel)->lines, lineLength);
+    err = qarray_push(QW(pLabel)->pAllocator, &QP(pLabel)->lines, lineLength);
     if (err) {
       return err;
     }
   }
 
   // Assign the line statistics.
-  P(pLabel)->maxLineLength = maxLineLength;
+  QP(pLabel)->maxLineLength = maxLineLength;
 
   // If we succeeded, we should mark the widget as dirty.
-  qcurses_widget_mark_dirty(pLabel);
+  qwidget_mark_dirty(pLabel);
+  qwidget_emit(pLabel, set_text, pData, n);
   return 0;
 }
 

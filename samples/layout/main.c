@@ -17,9 +17,9 @@
  ******************************************************************************/
 
 #include <qcurses/qcurses.h>
-#include <qcurses/application.h>
-#include <qcurses/label.h>
-#include <qcurses/layout.h>
+#include <qcurses/qapplication.h>
+#include <qcurses/qlabel.h>
+#include <qcurses/qlayout.h>
 #include <string.h>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -31,68 +31,68 @@
 #define APPLICATION_VERSION     "v1.0"
 #define APPLICATION_DESCRIPTION "A minimal application using labels and vertical layouts."
 
-#define QCURSES_CHECK(s) do { int err = s; if (err) return err; } while (0)
+#define QCHECK(s) do { int err = s; if (err) return err; } while (0)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Application Callbacks
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-QCURSES_SLOT(
+QSLOT(
   application_quit,
-  qcurses_application_t *               pThis,
-  qcurses_keycode_t                     code,
+  qapplication_t *                      pThis,
+  qkey_t                                code,
   int                                   value
 ) {
   (void)value;
 
   // If the user presses "Q", we should prepare to quit.
-  if (code == QCURSES_KEYCODE_Q) {
-    return qcurses_application_quit(pThis);
+  if (code == QKEY_Q) {
+    return qapplication_quit(pThis, 0);
   }
 
   return 0;
 }
 
 //------------------------------------------------------------------------------
-QCURSES_SLOT(
+QSLOT(
   layout_reorganize,
-  qcurses_layout_t *                    pThis,
-  qcurses_keycode_t                     code,
+  qlayout_t *                           pThis,
+  qkey_t                                code,
   int                                   value
 ) {
   (void)value;
 
   // If the user presses "Q", we should prepare to quit.
-  if (code == QCURSES_KEYCODE_1) {
-    return qcurses_layout_set_format(pThis, QCURSES_LAYOUT_VERTICAL);
+  if (code == QKEY_1) {
+    return qlayout_set_format(pThis, QLAYOUT_VERTICAL);
   }
-  if (code == QCURSES_KEYCODE_2) {
-    return qcurses_layout_set_format(pThis, QCURSES_LAYOUT_VERTICAL_REVERSE);
+  if (code == QKEY_2) {
+    return qlayout_set_format(pThis, QLAYOUT_VERTICAL_REVERSE);
   }
-  if (code == QCURSES_KEYCODE_3) {
-    return qcurses_layout_set_format(pThis, QCURSES_LAYOUT_HORIZONTAL);
+  if (code == QKEY_3) {
+    return qlayout_set_format(pThis, QLAYOUT_HORIZONTAL);
   }
-  if (code == QCURSES_KEYCODE_4) {
-    return qcurses_layout_set_format(pThis, QCURSES_LAYOUT_HORIZONTAL_REVERSE);
+  if (code == QKEY_4) {
+    return qlayout_set_format(pThis, QLAYOUT_HORIZONTAL_REVERSE);
   }
 
   return 0;
 }
 
 //------------------------------------------------------------------------------
-QCURSES_SLOT(
+QSLOT(
   layout_changed,
-  qcurses_label_t *                     pThis,
-  qcurses_layout_format_t               format
+  qlabel_t *                            pThis,
+  qlayout_format_t                      format
 ) {
   switch (format) {
-    case QCURSES_LAYOUT_VERTICAL:
-    case QCURSES_LAYOUT_VERTICAL_REVERSE:
-      return qcurses_label_set_text_k(pThis, "Vertical");
-    case QCURSES_LAYOUT_HORIZONTAL:
-    case QCURSES_LAYOUT_HORIZONTAL_REVERSE:
-      return qcurses_label_set_text_k(pThis, "Horizontal");
+    case QLAYOUT_VERTICAL:
+    case QLAYOUT_VERTICAL_REVERSE:
+      return qlabel_set_text_k(pThis, "Vertical");
+    case QLAYOUT_HORIZONTAL:
+    case QLAYOUT_HORIZONTAL_REVERSE:
+      return qlabel_set_text_k(pThis, "Horizontal");
   }
   return 0;
 }
@@ -103,37 +103,37 @@ QCURSES_SLOT(
 
 //------------------------------------------------------------------------------
 #define main_create_attach_label_k(pAllocator, layout, str) do {                \
-  QCURSES_CHECK(qcurses_create_label(pAllocator, &label));                      \
-  QCURSES_CHECK(qcurses_label_set_text_k(label, str));                          \
-  QCURSES_CHECK(qcurses_layout_add_widget(layout, label, 0));                   \
+  QCHECK(qcreate_label(pAllocator, &label));                                    \
+  QCHECK(qlabel_set_text_k(label, str));                                        \
+  QCHECK(qlayout_add_widget(layout, label, 0));                                 \
 } while (0)
 
 //------------------------------------------------------------------------------
 static int main_prepare_main_widget (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_application_t *               pApplication
+  qalloc_t const *                      pAllocator,
+  qapplication_t *                      pApplication
 ) {
-  qcurses_label_t * label;
-  qcurses_layout_t * layout;
-  QCURSES_CHECK(qcurses_create_layout(pAllocator, QCURSES_LAYOUT_VERTICAL, &layout));
-  QCURSES_CHECK(qcurses_widget_connect(pApplication, onKey, layout, layout_reorganize));
+  qlabel_t * label;
+  qlayout_t * layout;
+  QCHECK(qcreate_layout(pAllocator, QLAYOUT_VERTICAL, &layout));
+  QCHECK(qwidget_connect(pApplication, on_key, layout, layout_reorganize));
   main_create_attach_label_k(pAllocator, layout, "This");
   main_create_attach_label_k(pAllocator, layout, "ia a");
   main_create_attach_label_k(pAllocator, layout, "Vertical");
-  QCURSES_CHECK(qcurses_widget_connect(layout, onFormat, label, layout_changed));
+  QCHECK(qwidget_connect(layout, set_format, label, layout_changed));
   main_create_attach_label_k(pAllocator, layout, "Layout");
-  QCURSES_CHECK(qcurses_application_set_main_widget(pApplication, layout));
+  QCHECK(qapplication_set_main_widget(pApplication, layout));
   return 0;
 }
 
 //------------------------------------------------------------------------------
 static int main_prepare_application (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_application_t *               pApplication
+  qalloc_t const *                      pAllocator,
+  qapplication_t *                      pApplication
 ) {
   (void)pAllocator;
-  QCURSES_CHECK(qcurses_widget_connect(pApplication, onKey, pApplication, application_quit));
-  QCURSES_CHECK(main_prepare_main_widget(pAllocator, pApplication));
+  QCHECK(qwidget_connect(pApplication, on_key, pApplication, application_quit));
+  QCHECK(main_prepare_main_widget(pAllocator, pApplication));
   return 0;
 }
 
@@ -143,10 +143,10 @@ static int main_prepare_application (
 
 //------------------------------------------------------------------------------
 int main (int argc, char const * argv[]) {
-  qcurses_application_t* app;
+  qapplication_t* app;
 
   // Prepare the application for initialization.
-  qcurses_application_info_t appInfo;
+  qapplication_info_t appInfo;
   memset(&appInfo, 0, sizeof(appInfo));
   appInfo.pAllocator        = NULL;
   appInfo.pApplicationName  = APPLICATION_NAME;
@@ -155,10 +155,10 @@ int main (int argc, char const * argv[]) {
   appInfo.pDescription      = APPLICATION_DESCRIPTION;
 
   // Run the application by creating, preparing, running, and destroying.
-  QCURSES_CHECK(qcurses_create_application(&appInfo, &app));
-  QCURSES_CHECK(main_prepare_application(appInfo.pAllocator, app));
-  QCURSES_CHECK(qcurses_application_run(app));
-  qcurses_destroy_application(app);
+  QCHECK(qcreate_application(&appInfo, &app));
+  QCHECK(main_prepare_application(appInfo.pAllocator, app));
+  QCHECK(qapplication_run(app));
+  qdestroy_application(app);
 
   return 0;
 }

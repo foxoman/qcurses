@@ -13,47 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
+#ifndef   QMENU_BAR_H
+#define   QMENU_BAR_H
 
-#include "status_bar.h"
+#include "qcurses.h"
+#include "qwidget.h"
 
 #ifdef    __cplusplus
 extern "C" {
 #endif // __cplusplus
 
 ////////////////////////////////////////////////////////////////////////////////
-// Status Bar Functions
+// Menu Bar Definition
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-static int qcurses_status_bar_recalculate (
-  qcurses_status_bar_t *                pStatusBar,
-  qcurses_bounds_t const *              pBounds
-) {
-  (void)pStatusBar;
-  (void)pBounds;
-  return ENOTSUP;
-}
-
-//------------------------------------------------------------------------------
-static int qcurses_status_bar_paint (
-  qcurses_status_bar_t *                pStatusBar,
-  qcurses_region_t const *              pRegion
-) {
-  (void)pStatusBar;
-  (void)pRegion;
-  return ENOTSUP;
-}
-
-//------------------------------------------------------------------------------
-int qcurses_create_status_bar (
-  qcurses_alloc_t const *               pAllocator,
-  qcurses_status_bar_t **               pStatusBar
-) {
-  (void)pAllocator;
-  (void)pStatusBar;
-  return ENOTSUP;
-}
+QWIDGET_BEGIN(qmenu_bar_t)
+  // Intentionally Empty
+QWIDGET_END
 
 #ifdef    __cplusplus
 }
 #endif // __cplusplus
+
+#endif // QMENU_BAR_H

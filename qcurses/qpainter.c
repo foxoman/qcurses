@@ -14,8 +14,8 @@
  * limitations under the License.
  ******************************************************************************/
 
-#include "painter.h"
-#include "painter.inl"
+#include "qpainter.h"
+#include "detail/qpainter.inl"
 #include <ncurses.h>
 #include <errno.h>
 
@@ -24,9 +24,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-static int qcurses_painter_clearins (
-  qcurses_painter_t *                   pPainter,
-  qcurses_region_t const *              pRegion
+static int qpainter_clearins (
+  qpainter_t *                          pPainter,
+  qregion_t const *                     pRegion
 ) {
   int err;
   size_t currRow;
@@ -48,9 +48,9 @@ static int qcurses_painter_clearins (
 }
 
 //------------------------------------------------------------------------------
-static int qcurses_painter_clearadd (
-  qcurses_painter_t *                   pPainter,
-  qcurses_region_t const *              pRegion
+static int qpainter_clearadd (
+  qpainter_t *                          pPainter,
+  qregion_t const *                     pRegion
 ) {
   int err;
   size_t currRow;
@@ -72,23 +72,23 @@ static int qcurses_painter_clearadd (
 }
 
 //------------------------------------------------------------------------------
-int qcurses_painter_clear (
-  qcurses_painter_t *                   pPainter,
-  qcurses_region_t const *              pRegion
+int QCURSESCALL qpainter_clear (
+  qpainter_t *                          pPainter,
+  qregion_t const *                     pRegion
 ) {
 
   // Select between clearins and clearadd (clear mechanism).
   // This is because NCurses can report failure if we scroll the screen with scroll-lock.
   if (pPainter->boundary.columns == pRegion->coord.column + pRegion->bounds.columns) {
-    return qcurses_painter_clearins(pPainter, pRegion);
+    return qpainter_clearins(pPainter, pRegion);
   }
   else {
-    return qcurses_painter_clearadd(pPainter, pRegion);
+    return qpainter_clearadd(pPainter, pRegion);
   }
 }
 
 //------------------------------------------------------------------------------
-static size_t qcurses_countprintable (
+static size_t QCURSESCALL qcountprintable (
   char const *                          pData,
   size_t                                n
 ) {
@@ -97,36 +97,36 @@ static size_t qcurses_countprintable (
 }
 
 //------------------------------------------------------------------------------
-int qcurses_painter_paint (
-  qcurses_painter_t *                   pPainter,
-  qcurses_coord_t const *               pOrigin,
+int QCURSESCALL qpainter_paint (
+  qpainter_t *                          pPainter,
+  qcoord_t const *                      pOrigin,
   char const *                          pData,
   size_t                                n
 ) {
   size_t printableCharacters;
 
   // Calculate the number of printable characters (non-command).
-  printableCharacters = qcurses_countprintable(pData, n);
+  printableCharacters = qcountprintable(pData, n);
 
   // Either select to add or insert depending on how this affects the screen.
   // We can fail to addstr if it will update the cursor past the screen boundary.
   // As a mitigation, we instead select between add/insert depending on parameters.
   if (pPainter->boundary.columns == pOrigin->column + printableCharacters) {
-    return qcurses_painter_insstr(pPainter, pOrigin, pData, n);
+    return qpainter_insstr(pPainter, pOrigin, pData, n);
   }
   else {
-    return qcurses_painter_addstr(pPainter, pOrigin, pData, n);
+    return qpainter_addstr(pPainter, pOrigin, pData, n);
   }
 }
 
 //------------------------------------------------------------------------------
-static int qcurses_painter_determine_failure (
-  qcurses_painter_t *                   pPainter,
-  qcurses_coord_t const *               pOrigin,
+static int qpainter_determine_failure (
+  qpainter_t *                          pPainter,
+  qcoord_t const *                      pOrigin,
   char const *                          pData,
   size_t                                n
 ) {
-  n = qcurses_countprintable(pData, n);
+  n = qcountprintable(pData, n);
   if (
     pPainter->boundary.columns  <= pOrigin->column      ||
     pPainter->boundary.rows     <= pOrigin->row         ||
@@ -139,9 +139,9 @@ static int qcurses_painter_determine_failure (
 }
 
 //------------------------------------------------------------------------------
-int qcurses_painter_insstr (
-  qcurses_painter_t *                   pPainter,
-  qcurses_coord_t const *               pOrigin,
+int QCURSESCALL qpainter_insstr (
+  qpainter_t *                          pPainter,
+  qcoord_t const *                      pOrigin,
   char const *                          pData,
   size_t                                n
 ) {
@@ -157,7 +157,7 @@ int qcurses_painter_insstr (
     (int)(n)
   );
   if (err == ERR) {
-    return qcurses_painter_determine_failure(
+    return qpainter_determine_failure(
       pPainter,
       pOrigin,
       pData,
@@ -169,9 +169,9 @@ int qcurses_painter_insstr (
 }
 
 //------------------------------------------------------------------------------
-int qcurses_painter_addstr (
-  qcurses_painter_t *                   pPainter,
-  qcurses_coord_t const *               pOrigin,
+int QCURSESCALL qpainter_addstr (
+  qpainter_t *                          pPainter,
+  qcoord_t const *                      pOrigin,
   char const *                          pData,
   size_t                                n
 ) {
@@ -187,7 +187,7 @@ int qcurses_painter_addstr (
     (int)(n)
   );
   if (err == ERR) {
-    return qcurses_painter_determine_failure(
+    return qpainter_determine_failure(
       pPainter,
       pOrigin,
       pData,
