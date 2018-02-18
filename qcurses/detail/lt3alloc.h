@@ -17,7 +17,7 @@
 #define   QLT3ALLOC_H
 
 #include "../qcurses.h"
-#include <lt3/alloc.h>
+#include <lt3/lt3.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Allocator Pass-Through Functions

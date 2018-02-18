@@ -17,8 +17,7 @@
 #include "qlabel.h"
 #include "qpainter.h"
 #include "detail/lt3alloc.h"
-#include <lt3/alloc.h>
-#include <lt3/string.h>
+#include <lt3/string/pstring.h>
 
 // TODO: Text shifts when contentRegion > innerRegion, when ideally it should not.
 #ifdef    __cplusplus
@@ -33,7 +32,7 @@ extern "C" {
 struct QPIMPL_NAME(qlabel_t) {
   qlt3alloc_t                           allocator;
   qalign_t                              alignment;
-  lt3_string_t                          contents;
+  lt3_pstring_t                         contents;
   size_t                                maxLineLength;
   QDEFINE_ARRAY(size_t)                 lines;
 };
@@ -181,7 +180,7 @@ QPAINTER(
   }
 
   // Print each of the lines
-  pString = lt3_string_cstr(&QP(pLabel)->contents);
+  pString = QP(pLabel)->contents->data;
   for (idx = 0; idx < rowCount; ++idx) {
 
     // Grab the current line length (excluding the newline).
@@ -275,7 +274,6 @@ int QCURSESCALL qcreate_label (
   // Grab the application private implementation pointer.
   QP(label)->alignment = QALIGN_MIDDLE_BIT | QALIGN_CENTER_BIT;
   qlt3alloc_init(QW(label)->pAllocator, &QP(label)->allocator);
-  lt3_string_init(&QP(label)->contents);
 
   // Return the application to the caller.
   *pLabel = label;
@@ -286,7 +284,7 @@ int QCURSESCALL qcreate_label (
 void QCURSESCALL qdestroy_label (
   qlabel_t *                            pLabel
 ) {
-  lt3_string_deinit(&QP(pLabel)->allocator.instance, &QP(pLabel)->contents);
+  lt3_pstring_deinit(&QP(pLabel)->allocator.instance, QP(pLabel)->contents);
   qdestroy_widget(pLabel);
 }
 
@@ -334,16 +332,16 @@ int QCURSESCALL qlabel_set_text_n (
   char * pData;
   size_t lineLength;
   size_t maxLineLength;
-  lt3_string_t * pString;
+  lt3_pstring_t pString;
 
   // We will be using the string a lot here, so grab a pointer.
   // Mostly this is just for code cleanliness - makes things simpler.
-  pString = &QP(pLabel)->contents;
+  pString = QP(pLabel)->contents;
 
   // Attempt to set the string inside the label.
-  err = lt3_string_assign_cstr_n(
+  err = lt3_pstring_assign_cstr_n(
     &QP(pLabel)->allocator.instance,
-    pString,
+    &pString,
     text,
     n
   );
@@ -354,7 +352,8 @@ int QCURSESCALL qlabel_set_text_n (
   // Now that we have a new label string, grab it for ease of use.
   // In this case, we want to avoid constantly grabbing the string pointer.
   // There is some cost to this, since the string can be either embedded or external.
-  pData = lt3_string_cstr(pString);
+  pData = pString->data;
+  QP(pLabel)->contents = pString;
   qarray_clear(&QP(pLabel)->lines);
 
   // Construct the string views into the raw data as relative offsets.
